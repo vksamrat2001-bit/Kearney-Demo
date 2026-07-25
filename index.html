@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warehouse Intelligence &amp; Opportunity Agent — Kearney Command Center (Demo)</title>
+<style>
+
+:root{
+  --bg:#FFFFFF; --bg2:#F7F5FA;
+  --panel:#FFFFFF; --panel2:#F7F5FA; --inset:#F3EFFA;
+  --line:#E4DDF0; --line2:#D3C8EA;
+  --ink:#1A1A2E; --text:#3A3A4E; --mut:#6B6B7B; --faint:#706A80;
+  --acc:#7823DC; --acc2:#5A1AA8; --teal:#7823DC; --grn:#0F7A4F; --amb:#8F5B00; --red:#B62F2F;
+  --accbg:rgba(120,35,220,.09); --tealbg:rgba(120,35,220,.07);
+  --grnbg:rgba(30,158,106,.12); --ambbg:rgba(184,118,0,.13); --redbg:rgba(198,58,58,.10);
+  --r:14px; --r2:10px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; min-width:1180px; color:var(--text);
+  font:13px/1.5 'Segoe UI',system-ui,-apple-system,Roboto,'Helvetica Neue',sans-serif;
+  background:
+    radial-gradient(1000px 560px at 82% -14%, rgba(120,35,220,.07), transparent 62%),
+    radial-gradient(820px 480px at -6% 106%, rgba(120,35,220,.05), transparent 58%),
+    var(--bg);
+}
+::selection{background:rgba(120,35,220,.18)}
+a{color:var(--acc2);text-decoration:none}
+.app{display:grid;grid-template-columns:218px minmax(0,1fr) 306px;height:100vh}
+@media (max-width:1420px){ .app{grid-template-columns:218px minmax(0,1fr)} .rail{display:none} }
+
+/* ---------------- sidebar ---------------- */
+.side{border-right:1px solid var(--line);background:linear-gradient(180deg,#FBFAFE,#F5F2FB);display:flex;flex-direction:column;overflow-y:auto}
+.brand{display:flex;gap:10px;align-items:center;padding:18px 16px 12px}
+.cube{width:34px;height:34px;border-radius:10px;background:linear-gradient(140deg,#B07DF5,#6C1FC7);box-shadow:0 4px 12px rgba(120,35,220,.28);position:relative;flex:0 0 auto}
+.cube:after{content:'';position:absolute;inset:9px 9px 15px 9px;border-radius:3px;background:rgba(255,255,255,.85)}
+.cube:before{content:'';position:absolute;left:9px;right:16px;bottom:8px;height:5px;border-radius:2px;background:rgba(255,255,255,.45)}
+.brand b{color:var(--ink);font-size:12.5px;letter-spacing:.02em;line-height:1.25;display:block;font-weight:700}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:.16em;color:var(--acc2);text-transform:uppercase}
+.side .eyebrow{padding:2px 16px 10px}
+.nav{padding:4px 10px 10px;display:flex;flex-direction:column;gap:2px}
+.nav button{
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
+  background:none;border:0;color:var(--mut);font:inherit;font-weight:600;font-size:12.8px;
+  padding:9px 11px;border-radius:11px;transition:background .15s,color .15s;
+}
+.nav button svg{width:16px;height:16px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.nav button:hover{color:var(--acc2);background:rgba(120,35,220,.07)}
+.nav button.on{color:#fff;background:linear-gradient(120deg,#9B5BE8,#7823DC);box-shadow:0 4px 12px rgba(120,35,220,.22)}
+.side .foot{margin-top:auto;padding:12px 16px 16px;border-top:1px solid var(--line);font-size:11.5px}
+.side .foot .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.meter{height:5px;border-radius:3px;background:#EDE7F8;overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;width:96%;background:linear-gradient(90deg,var(--teal),var(--grn));border-radius:3px}
+
+
+.scopesel{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:999px;
+  padding:9px 14px;font:600 12px/1 'Segoe UI',sans-serif;outline:none;cursor:pointer;min-width:190px}
+.scopesel:focus{border-color:var(--acc)}
+.drop{border:2px dashed var(--line2);border-radius:16px;padding:30px 22px;text-align:center;background:var(--inset);
+  transition:.15s;cursor:pointer}
+.drop:hover,.drop.hot{border-color:var(--acc);background:rgba(120,35,220,.07)}
+.drop .big{font-size:15px;font-weight:800;color:var(--ink);margin:10px 0 4px}
+.drop .sm{font-size:11.8px;color:var(--mut)}
+.ftypes{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.ftypes span{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--text);
+  background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 9px}
+.cov{width:100%;border-collapse:collapse;font-size:11.8px}
+.cov th{text-align:left;color:var(--mut);font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:7px 8px;border-bottom:1px solid var(--line)}
+.cov td{padding:7px 8px;border-bottom:1px solid var(--line)}
+.pill{display:inline-block;font-size:10px;font-weight:800;padding:2.5px 8px;border-radius:999px}
+.pl-g{background:var(--grnbg);color:var(--grn)} .pl-a{background:var(--ambbg);color:var(--amb)} .pl-r{background:var(--redbg);color:var(--red)}
+.tierchip{font-size:9.6px;font-weight:800;letter-spacing:.07em;padding:2px 7px;border-radius:5px;
+  background:rgba(120,35,220,.16);color:var(--acc2);border:1px solid rgba(120,35,220,.3)}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden}
+.seg button{cursor:pointer;font:800 10.5px/1 'Segoe UI',sans-serif;letter-spacing:.05em;
+  padding:6px 12px;border:0;background:transparent;color:var(--mut)}
+.seg button.on{background:linear-gradient(120deg,#9B5BE8,#7823DC);color:#fff}
+/* ---------------- topbar + main ---------------- */
+.main{overflow-y:auto;padding:14px 18px 26px;scroll-behavior:smooth}
+.topbar{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.search{flex:1;display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 13px}
+.search svg{width:15px;height:15px;stroke:var(--mut);fill:none;stroke-width:1.8;stroke-linecap:round}
+.search input{flex:1;background:none;border:0;outline:0;color:var(--ink);font:inherit;font-size:13px}
+.search input::placeholder{color:var(--mut)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;border:1px solid transparent}
+.chip .dot{width:6px;height:6px;border-radius:50%}
+.chip.amber{background:var(--ambbg);color:var(--amb);border-color:rgba(251,191,36,.25)}
+.chip.green{background:var(--grnbg);color:var(--grn);border-color:rgba(52,211,153,.25)}
+.chip.red{background:var(--redbg);color:var(--red);border-color:rgba(248,113,122,.25)}
+.chip.violet{background:var(--accbg);color:var(--acc2);border-color:rgba(120,35,220,.3)}
+.chip.grey{background:#F3EFFA;color:var(--mut);border-color:var(--line)}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(140deg,#31406e,#1b2542);display:grid;place-items:center;color:var(--ink);font-weight:800;font-size:12px;border:1px solid var(--line2)}
+
+/* ---------------- cards & primitives ---------------- */
+.card{background:#FFFFFF;border:1px solid var(--line);border-radius:var(--r);box-shadow:0 2px 10px rgba(26,26,46,.05)}
+.card .hd{display:flex;align-items:center;gap:10px;padding:13px 15px 0}
+.card .hd h3{margin:0;color:var(--ink);font-size:13px;font-weight:700;letter-spacing:.01em}
+.card .hd .sub{font-size:11px;color:var(--mut)}
+.card .hd .spacer{flex:1}
+.card .bd{padding:12px 15px 14px}
+.link{font-size:11px;font-weight:700;color:var(--acc2);cursor:pointer}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.02em}
+.t-grn{background:var(--grnbg);color:var(--grn)} .t-amb{background:var(--ambbg);color:var(--amb)}
+.t-red{background:var(--redbg);color:var(--red)} .t-acc{background:var(--accbg);color:var(--acc2)}
+.t-grey{background:#F3EFFA;color:var(--mut)}
+.num{font-variant-numeric:tabular-nums}
+.hint{font-size:10.5px;color:var(--faint);font-style:italic}
+
+/* ---------------- KPI strip ---------------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px}
+.kpi{position:relative;overflow:hidden;padding:11px 13px;border-radius:var(--r);border:1px solid var(--line);background:#FFFFFF}
+.kpi:before{content:'';position:absolute;inset:0 0 auto 0;height:2px;background:var(--kc,#9B5BE8);opacity:.9}
+.kpi:after{content:'';position:absolute;width:130px;height:130px;right:-48px;top:-48px;border-radius:50%;background:radial-gradient(closest-side,var(--kc,#9B5BE8),transparent 70%);opacity:.16}
+.kpi .lab{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.kpi .val{color:var(--ink);font-size:24px;font-weight:800;letter-spacing:-.02em;margin:5px 0 3px}
+.kpi .val small{font-size:13px;color:var(--text);font-weight:700}
+.kpi .sub{font-size:11px;color:var(--mut)}
+.kpi .sub b{font-weight:700}
+.up{color:var(--grn)} .dn{color:var(--red)} .warn{color:var(--amb)}
+
+/* ---------------- layout grids ---------------- */
+.grid{display:grid;gap:12px}
+.g-ov1{grid-template-columns:minmax(0,7fr) minmax(0,5fr);margin-bottom:12px}
+.g-ov2{grid-template-columns:repeat(3,minmax(0,1fr))}
+.stack{display:flex;flex-direction:column;gap:12px;min-width:0}
+
+/* ---------------- map ---------------- */
+.mapwrap{position:relative}
+.mapwrap svg{width:100%;height:auto;display:block}
+.mapdot{fill:#E7DFF4}
+.legend{display:flex;gap:16px;font-size:11px;color:var(--mut);padding:2px 15px 12px}
+.legend i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:-1px}
+.pulse{transform-box:fill-box;transform-origin:center;animation:pul 2.8s ease-out infinite}
+@keyframes pul{0%{transform:scale(.55);opacity:.85}70%{transform:scale(1.9);opacity:0}100%{transform:scale(1.9);opacity:0}}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none;opacity:.25}}
+.maplabel{font-size:10.5px;font-weight:800;fill:#1A1A2E;paint-order:stroke;stroke:#FFFFFF;stroke-width:3.4px;stroke-linejoin:round;letter-spacing:.01em;pointer-events:none}
+.maplabel-bg{fill:#F7F5FA;stroke:#D9CFEE;stroke-width:1;rx:6}
+
+/* ---------------- tables ---------------- */
+table.t{width:100%;border-collapse:collapse;font-size:12px}
+table.t th{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);text-align:left;padding:4px 8px 8px;border-bottom:1px solid var(--line)}
+table.t td{padding:8px;border-bottom:1px solid #EDE7F8;color:var(--text);vertical-align:middle}
+table.t tr:last-child td{border-bottom:0}
+table.t td b{color:var(--ink);font-weight:700}
+table.t tr:hover td{background:rgba(120,35,220,.05)}
+.scorepill{display:inline-block;min-width:34px;text-align:center;padding:2px 7px;border-radius:8px;font-weight:800;font-size:11.5px}
+.dotb{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px;vertical-align:-1px}
+
+/* ---------------- opportunity list ---------------- */
+.opp{display:flex;align-items:center;gap:12px;background:var(--inset);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;transition:transform .35s ease, box-shadow .2s}
+.opp:hover{box-shadow:0 8px 22px rgba(2,6,18,.55);border-color:var(--line2)}
+.opp .rank{width:26px;height:26px;border-radius:50%;background:linear-gradient(140deg,#9B5BE8,#6C1FC7);color:#fff;font-weight:800;font-size:12.5px;display:grid;place-items:center;flex:0 0 auto;box-shadow:0 3px 9px rgba(120,35,220,.26)}
+.opp .body{flex:1;min-width:0}
+.opp .t1{color:var(--ink);font-weight:700;font-size:12.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opp .t2{display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap}
+.opp .save{color:var(--teal);font-weight:800;font-size:13px;white-space:nowrap}
+.effort{display:inline-flex;gap:3px;align-items:center}
+.effort i{width:6px;height:6px;border-radius:50%;background:#E7DFF4}
+.effort i.on{background:var(--acc2)}
+.idx{width:104px;flex:0 0 auto;text-align:right}
+.idx .n{color:var(--ink);font-weight:800;font-size:15px}
+.idx .bar{height:5px;border-radius:3px;background:#EDE7F8;margin-top:5px;overflow:hidden}
+.idx .bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+
+/* ---------------- sliders ---------------- */
+.wrow{margin-bottom:13px}
+.wrow .l{display:flex;justify-content:space-between;font-size:11.8px;font-weight:600;color:var(--text);margin-bottom:6px}
+.wrow .l b{color:var(--acc2);font-weight:800}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:3px;background:#EDE7F8;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#fff;border:3.5px solid var(--acc);box-shadow:0 2px 8px rgba(90,26,168,.5);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:3.5px solid var(--acc);cursor:pointer}
+
+/* ---------------- right rail ---------------- */
+.rail{border-left:1px solid var(--line);background:linear-gradient(180deg,#FBFAFE,#F5F2FB);overflow-y:auto;padding:14px 13px 18px;display:flex;flex-direction:column;gap:12px}
+.brief-it{display:flex;gap:9px;background:var(--inset);border:1px solid var(--line);border-left:3px solid var(--bc,#9B5BE8);border-radius:10px;padding:9px 10px;margin-bottom:8px}
+.brief-it .tt{color:var(--ink);font-weight:700;font-size:11.8px;line-height:1.35}
+.brief-it .dd{font-size:11px;color:var(--mut);margin-top:3px;line-height:1.4}
+.brief-it .chip{margin-top:6px}
+.copilot .msg{border-radius:11px;padding:8px 11px;font-size:11.8px;line-height:1.45;margin-bottom:8px;max-width:95%}
+.copilot .q{background:linear-gradient(120deg,#9B5BE8,#7823DC);color:#fff;margin-left:auto;font-weight:600}
+.copilot .a{background:var(--inset);border:1px solid var(--line);color:var(--text)}
+.sugg{display:flex;flex-wrap:wrap;gap:6px}
+.sugg button{cursor:pointer;background:var(--accbg);border:1px solid rgba(120,35,220,.3);color:var(--acc2);border-radius:999px;font:inherit;font-size:10.8px;font-weight:700;padding:4px 10px}
+.sugg button:hover{background:rgba(120,35,220,.22)}
+
+/* ---------------- views ---------------- */
+.view{display:none}
+.view.on{display:block;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.vhead{display:flex;align-items:baseline;gap:12px;margin:2px 0 12px}
+.vhead h2{margin:0;color:var(--ink);font-size:19px;font-weight:800;letter-spacing:-.01em}
+.vhead .sub{color:var(--mut);font-size:12px}
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pillar{background:var(--inset);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+.pillar .ph{display:flex;justify-content:space-between;align-items:center}
+.pillar .ph b{color:var(--ink);font-size:12.6px}
+.pillar .pct{font-weight:800;font-size:11.5px}
+.pbar{height:6px;border-radius:3px;background:#EDE7F8;margin:8px 0 10px;overflow:hidden}
+.pbar i{display:block;height:100%;border-radius:3px}
+.met{display:flex;justify-content:space-between;font-size:11.6px;padding:3px 0}
+.met b{color:var(--ink);font-weight:700}
+.sitechips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.sitechips button{cursor:pointer;font:inherit;font-size:11.5px;font-weight:700;color:var(--mut);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 13px}
+.sitechips button.on{color:#fff;background:linear-gradient(120deg,#9B5BE8,#7823DC);border-color:transparent}
+.ring{position:relative;width:92px;height:92px}
+.ring svg{transform:rotate(-90deg)}
+.ring .rv{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink);font-size:22px;font-weight:800}
+.ring .rv small{font-size:10px;color:var(--mut);font-weight:700;display:block;text-align:center}
+.chat{display:flex;flex-direction:column;height:560px}
+.chat .log{flex:1;overflow-y:auto;padding:4px 2px}
+.chat .msg{border-radius:13px;padding:10px 13px;font-size:12.6px;line-height:1.5;margin-bottom:10px;max-width:78%}
+.chat .q{background:linear-gradient(120deg,#9B5BE8,#7823DC);color:#fff;margin-left:auto;font-weight:600}
+.chat .a{background:var(--inset);border:1px solid var(--line);border-left:3px solid var(--teal)}
+.chat .a table.t td{padding:5px 6px}
+.chat .in{display:flex;gap:9px;margin-top:10px}
+.chat .in input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:10px 15px;color:var(--ink);font:inherit;outline:none}
+.chat .in button{cursor:pointer;font:inherit;font-weight:800;color:#fff;background:linear-gradient(120deg,#9B5BE8,#7823DC);border:0;border-radius:999px;padding:0 20px}
+.lockcard{display:flex;gap:14px;align-items:center;background:var(--inset);border:1px solid var(--line);border-left:3px solid var(--faint);border-radius:12px;padding:14px;margin-bottom:10px}
+.lockcard .ic{width:36px;height:36px;border-radius:10px;background:#EDE7F8;display:grid;place-items:center;flex:0 0 auto}
+.lockcard .ic svg{width:16px;height:16px;stroke:var(--mut);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn{cursor:pointer;font:inherit;font-size:11.5px;font-weight:800;color:#fff;background:linear-gradient(120deg,#9B5BE8,#7823DC);border:0;border-radius:999px;padding:8px 15px;box-shadow:0 4px 12px rgba(120,35,220,.24)}
+.btn.ghost{background:var(--accbg);color:var(--acc2);box-shadow:none;border:1px solid rgba(120,35,220,.3)}
+.footer{margin-top:16px;font-size:10.5px;color:var(--faint);text-align:center}
+#tip{position:fixed;z-index:50;pointer-events:none;background:#F7F5FA;border:1px solid var(--line2);border-radius:9px;padding:7px 10px;font-size:11px;color:var(--text);box-shadow:0 10px 26px rgba(0,0,0,.5);display:none;max-width:230px}
+#tip b{color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#F7F5FA;border:1px solid var(--line2);color:var(--text);padding:9px 16px;border-radius:999px;font-size:12px;box-shadow:0 12px 30px rgba(0,0,0,.55);opacity:0;transition:opacity .25s;z-index:60}
+.toast.on{opacity:1}
+.waterwrap svg,.scatwrap svg,.stratwrap svg{width:100%;height:auto;display:block}
+.donutrow{display:flex;gap:16px;align-items:center;margin-top:10px}
+.donut{width:110px;height:110px;border-radius:50%;position:relative;flex:0 0 auto}
+.donut:after{content:'';position:absolute;inset:24%;border-radius:50%;background:#0d1527}
+.dleg{flex:1;font-size:11.6px}
+.dleg .r{display:flex;justify-content:space-between;padding:3px 0}
+.dleg i{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:8px;vertical-align:-1px}
+.callout{background:#FBF9FE;border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:11px;padding:10px 13px;font-size:11.8px;line-height:1.5;color:#2A2A3E}
+.callout b{color:var(--acc2);font-weight:800}
+.note{background:#F7F3FD;border:1px solid #E0D3F5;border-radius:11px;padding:10px 13px;font-size:11.8px;line-height:1.5;color:#2A2A3E;margin-top:12px}
+.note b{color:var(--acc2);font-weight:800}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+<div class="toast" id="toast"></div>
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="side">
+    <div class="brand"><div class="cube"></div><div><b>WAREHOUSE INTELLIGENCE<br>&amp; OPPORTUNITY AGENT</b></div></div>
+    <div class="eyebrow" style="letter-spacing:.28em">KEARNEY · AI COMMAND CENTER</div>
+    <nav class="nav" id="nav"></nav>
+    <div class="foot">
+      <span class="chip grey" style="width:100%;justify-content:center"><span class="dot" style="background:var(--grn)"></span>Data as on 12 Jun 2026 · monthly refresh</span>
+      <div class="row"><span style="color:var(--mut);font-weight:700">Data health</span><b class="num" style="color:var(--grn)">96%</b></div>
+      <div class="meter"><i></i></div>
+      <div class="row"><span style="color:var(--mut);font-weight:700">Estate confidence</span><span class="tag t-amb">AMBER</span></div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main" id="main">
+    <div class="topbar">
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/></svg>
+        <input id="askbox" placeholder="Ask the estate anything — every answer is fetched from the engines, never invented…">
+      </div>
+      <select id="scopesel" class="scopesel" title="Scope the whole dashboard"></select>
+      <span class="chip violet" id="scopebadge"><span class="dot" style="background:var(--acc2)"></span>Estate-wide · 24 sites</span>
+      <span class="chip violet"><span class="dot" style="background:var(--acc2)"></span>DEMO</span>
+      <div class="avatar">VP</div>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <!-- ============ OVERVIEW ============ -->
+    <section class="view on" id="view-overview">
+      <div class="grid g-ov1">
+        <div class="card">
+          <div class="hd"><h3>Warehouse network map</h3><span class="sub">colour = health · click a site for its scorecard</span><span class="spacer"></span><span class="seg" id="siteseg"><button data-all="0" class="on">Top 8</button><button data-all="1">All 24</button></span><span class="link" data-go="score" style="margin-left:10px">Explorer →</span></div>
+          <div class="bd mapwrap" id="map"></div>
+          <div class="legend"><span><i style="background:var(--grn)"></i>Healthy ≥75</span><span><i style="background:var(--amb)"></i>Watch 50–75</span><span><i style="background:var(--red)"></i>Action &lt;50</span><span style="margin-left:auto" class="hint">stylised map · top 8 of 24 sites shown</span></div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <div class="hd"><h3>Top opportunities</h3><span class="sub">by Priority Index</span><span class="spacer"></span><span class="link" data-go="opps">Tune weights →</span></div>
+            <div class="bd" id="ov-opps"></div>
+          </div>
+          <div class="card">
+            <div class="hd"><h3>Contract alerts</h3><span class="spacer"></span><span class="link" data-go="contracts">Register →</span></div>
+            <div class="bd" id="ov-contracts"></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid g-ov2">
+        <div class="card">
+          <div class="hd"><h3>KPI scorecard</h3><span class="sub">top 8 by spend</span><span class="spacer"></span><span class="link" data-go="score">All →</span></div>
+          <div class="bd" id="ov-kpitable"></div>
+        </div>
+        <div class="card">
+          <div class="hd"><h3>Cost build-up</h3><span class="sub">estate · ₹ Cr</span><span class="spacer"></span><span class="link" data-go="water">Detail →</span></div>
+          <div class="bd waterwrap" id="ov-water"></div>
+        </div>
+        <div class="card">
+          <div class="hd"><h3>Benchmarking</h3><span class="sub">cost/unit vs utilisation</span><span class="spacer"></span><span class="link" data-go="bench">Detail →</span></div>
+          <div class="bd scatwrap" id="ov-scatter"></div>
+        </div>
+      </div>
+      <div class="footer">Demo build · all figures illustrative · in the full product every number traces to its source file, sheet and formula.</div>
+    </section>
+
+    <!-- ============ SCORECARDS ============ -->
+    <section class="view" id="view-score">
+      <div class="vhead"><h2>Site scorecards</h2><span class="sub">nine pillars · percentile vs like-for-like peer cluster</span></div>
+      <div class="sitechips" id="sitechips"></div>
+      <div class="card"><div class="bd" id="scorebody"></div></div>
+    </section>
+
+    <!-- ============ UPLOAD ============ -->
+    <section class="view" id="view-upload">
+      <div class="vhead"><h2>Upload &amp; coverage</h2><span class="sub">drop files in — no integration, no IT project. A1 &middot; Atlas classifies, extracts and grades them, then tells you exactly what is still missing</span></div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;align-items:start">
+        <div class="card"><div class="hd"><h3>Drop your files</h3><span class="spacer"></span><span class="tag t-acc">CORE first</span></div>
+          <div class="bd">
+            <div class="drop" id="drop">
+              <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#9B5BE8" stroke-width="1.6" stroke-linecap="round"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 16v3a1.6 1.6 0 001.6 1.6h12.8A1.6 1.6 0 0020 19v-3"/></svg>
+              <div class="big">Drag files here, or click to browse</div>
+              <div class="sm">Cost sheets &middot; WMS exports &middot; rosters &middot; rate cards &middot; invoices &middot; leases &middot; scans</div>
+              <div class="ftypes"><span>XLSX</span><span>CSV</span><span>PDF</span><span>DOCX</span><span>SCAN / IMG</span><span>ZIP</span></div>
+            </div>
+            <input type="file" id="filein" multiple style="display:none">
+            <div id="uplog" style="margin-top:12px"></div>
+            <div class="note" style="margin-top:12px"><b>What happens next:</b> three-pass extraction (layout &rarr; context &rarr; self-correct), site-name matching, unit &amp; currency normalisation, then a Green/Amber/Red confidence grade on every field. Nothing is costed until you confirm it at the review gate.</div>
+          </div>
+        </div>
+        <div class="card"><div class="hd"><h3>Coverage &amp; readiness</h3><span class="spacer"></span><span id="covpct" class="tag t-acc">62% of CORE received</span></div>
+          <div class="bd" style="max-height:430px;overflow:auto"><table class="cov" id="covtbl"></table></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px"><div class="hd"><h3>What each missing file unlocks</h3><span class="spacer"></span><span class="tag t-amb">locked value</span></div>
+        <div class="bd"><div class="grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="callout"><b>WMS transaction log</b> &mdash; fits standard times from your own timestamps; turns productivity findings from Lead to Finding. Unlocks re-slotting and rostering, indicatively <b>₹4&ndash;8 Cr</b> per large site.</div>
+          <div class="callout"><b>Line-item 3PL invoices</b> &mdash; collided against the rate card, this is the single most reliable leakage detector. Typically surfaces <b>0.5&ndash;2% of contracted spend</b>, recurring.</div>
+          <div class="callout"><b>Past tender / RFQ quotes</b> &mdash; upgrades rate benchmarking from Context to Finding and builds the should-cost pack you negotiate with.</div>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- ============ GAP REGISTER ============ -->
+    <section class="view" id="view-gaps">
+      <div class="vhead"><h2>Gap register</h2><span class="sub">every gap the engines found — performance, cost, contract and data — each graded by how much it can be trusted. Only <b>Findings</b> may be sized in rupees and ranked</span></div>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
+        <div class="callout"><b style="color:var(--grn)">FINDING</b> &mdash; Green/Amber data, a valid peer set or hard external rate, and a driver identified. <b>Sized, ranked, roadmapped.</b></div>
+        <div class="callout"><b style="color:var(--amb)">LEAD</b> &mdash; the signal is real but the evidence is thin (no peer cluster, fitted parameter, or missing file). <b>Becomes an investigation task, never a committed number.</b></div>
+        <div class="callout"><b style="color:var(--mut)">CONTEXT</b> &mdash; directional or non-comparable. <b>Displayed for orientation, excluded from every total.</b></div>
+      </div>
+      <div class="card"><div class="hd"><h3 id="gaphd">All gaps</h3><span class="spacer"></span>
+        <span class="seg" id="gapseg"><button data-g="all" class="on">All</button><button data-g="Finding">Finding</button><button data-g="Lead">Lead</button><button data-g="Context">Context</button></span></div>
+        <div class="bd" style="max-height:520px;overflow:auto"><table class="cov" id="gaptbl"></table></div>
+      </div>
+    </section>
+
+    <!-- ============ COST WATERFALL ============ -->
+    <section class="view" id="view-water">
+      <div class="vhead"><h2>Cost waterfall</h2><span class="sub">how each rupee of estate cost builds up</span></div>
+      <div class="card"><div class="hd"><h3 id="watertitle">Estate cost build-up — ₹842 Cr</h3><span class="spacer"></span><span class="tag t-acc">unit: ₹ Cr / year</span></div>
+        <div class="bd waterwrap" id="big-water"></div>
+        <div class="bd" style="padding-top:0" id="water-extra"></div>
+      </div>
+    </section>
+
+    <!-- ============ BENCHMARKING ============ -->
+    <section class="view" id="view-bench">
+      <div class="vhead"><h2>Benchmarking</h2><span class="sub">every comparison is like-for-like, and graded before it can claim anything</span></div>
+      <div class="card"><div class="hd"><h3>Cost per unit vs utilisation</h3><span class="spacer"></span>
+        <span class="tag t-grn">Finding — sized ₹</span><span class="tag t-amb">Lead — investigate</span><span class="tag t-grey">Context — display only</span></div>
+        <div class="bd scatwrap" id="big-scatter"></div>
+        <div class="bd" style="padding-top:0"><div class="note"><b>How peers are chosen:</b> sites are clustered by temperature regime, flow type, automation level, ownership and region — and the cluster changes per KPI family. Comparisons are made against a peer's <b>sustained</b> best, never one lucky month, and any grouping can be contested at the review gate with a logged reason.</div></div>
+      </div>
+    </section>
+
+    <!-- ============ CONTRACTS ============ -->
+    <section class="view" id="view-contracts">
+      <div class="vhead"><h2>Contract intelligence</h2><span class="sub">terms × invoices × market — read once, checked continuously</span></div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <span class="chip green"><span class="dot" style="background:var(--grn)"></span>91% of spend under valid contract</span>
+        <span class="chip amber"><span class="dot" style="background:var(--amb)"></span>5 expiring ≤ 90 days</span>
+        <span class="chip red"><span class="dot" style="background:var(--red)"></span>Leakage found: ₹2.1 Cr/yr</span>
+      </div>
+      <div class="grid" style="grid-template-columns:minmax(0,7fr) minmax(0,5fr)">
+        <div class="card"><div class="hd"><h3>Contract register</h3><span class="spacer"></span><span class="hint">every field cites its source page</span></div><div class="bd" id="contractbody"></div></div>
+        <div class="card"><div class="hd"><h3>Supplier strategy matrix</h3><span class="spacer"></span><span class="hint">quadrant sets the negotiating posture</span></div><div class="bd stratwrap" id="strat"></div></div>
+      </div>
+    </section>
+
+    <!-- ============ OPPORTUNITIES ============ -->
+    <section class="view" id="view-opps">
+      <div class="vhead"><h2>Opportunities</h2><span class="sub">found → sized → governed · <b style="color:var(--acc2)">Identified ₹96 Cr</b> → <b style="color:var(--teal)">Realizable ₹58 Cr</b> after removing overlaps</span></div>
+      <div class="grid" style="grid-template-columns:minmax(0,4fr) minmax(0,8fr)">
+        <div class="card">
+          <div class="hd"><h3>Priority Index — your weights</h3></div>
+          <div class="bd" id="sliders"></div>
+          <div class="bd" style="padding-top:0"><div class="note" style="margin-top:0"><b>Transparent by design:</b> the index only sorts. Value, effort and urgency stay visible on every row, the formula is a plain weighted sum, and the weights are yours — never a hidden score.</div></div>
+        </div>
+        <div class="card">
+          <div class="hd"><h3>Ranked opportunities</h3><span class="sub" id="wsum"></span><span class="spacer"></span><span class="hint">re-ranks live as you move a slider</span></div>
+          <div class="bd" id="opplist"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LOCKED ============ -->
+    <section class="view" id="view-locked">
+      <div class="vhead"><h2>Locked opportunities</h2><span class="sub">feasible analyses waiting on one or two more files — with what they're worth</span></div>
+      <div class="card"><div class="bd" id="lockedbody"></div>
+        <div class="bd" style="padding-top:0"><div class="note"><b>Why this exists:</b> the tool never just says "not enough data". It shows exactly which file unlocks which analysis and its indicative value — this panel doubles as the phase-2 roadmap.</div></div>
+      </div>
+    </section>
+
+    <!-- ============ ESTATE BRIEF ============ -->
+    <section class="view" id="view-brief">
+      <div class="vhead"><h2>Estate Brief — June</h2><span class="sub">pushed at every refresh · a ranked diff of your own numbers against defined triggers</span><span class="spacer" style="flex:1"></span><span class="chip violet">AUTO · EACH REFRESH</span></div>
+      <div class="card"><div class="bd" id="briefbody"></div>
+        <div class="bd" style="padding-top:0"><div class="note"><b>Nothing here is invented:</b> each line is a threshold or window crossing in the estate's own data — cost band, benchmark gap, notice window, expiry trigger, pipeline change — narrated in plain language and linked to its numbers.</div></div>
+      </div>
+    </section>
+
+    <!-- ============ ASSISTANT ============ -->
+    <section class="view" id="view-assistant">
+      <div class="vhead"><h2>Ask the estate</h2><span class="sub">the assistant compiles your question into an engine call — it explains results, it never invents a number</span></div>
+      <div class="card"><div class="bd chat">
+        <div class="log" id="chatlog"></div>
+        <div class="in"><input id="chatin" placeholder='Try: "worst performing warehouses" · "what if we close Kolkata" · "contracts expiring" · "top savings"'><button id="chatsend">Send</button></div>
+      </div></div>
+    </section>
+
+  </main>
+
+  <!-- ================= RIGHT RAIL ================= -->
+  <aside class="rail">
+    <div>
+      <div class="eyebrow" style="padding:2px 2px 8px">✦ Estate Brief</div>
+      <div id="railbrief"></div>
+      <div style="text-align:right"><span class="link" data-go="brief">Full brief →</span></div>
+    </div>
+    <div class="copilot">
+      <div class="eyebrow" style="padding:2px 2px 8px">Assistant</div>
+      <div class="msg q">What are my worst performing warehouses?</div>
+      <div class="msg a"><b style="color:var(--ink)">Chennai DC</b> (score 28 — util 48%, cost ₹23.6/unit, +47% vs peer best, contract 54 days out) and <b style="color:var(--ink)">Kolkata DC</b> (score 42 — expired contract, productivity −15%). Both appear in this month's brief.<div style="margin-top:6px"><span class="link" data-go="assistant">View calculation &amp; sources →</span></div></div>
+      <div class="sugg">
+        <button data-ask="What if we close Kolkata DC?">what if we close Kolkata?</button>
+        <button data-ask="Which contracts are expiring soon?">contracts expiring</button>
+        <button data-ask="Top savings opportunities">top savings</button>
+      </div>
+    </div>
+  </aside>
+</div>
+<script>
+const IND_PATHS=[{"d":"M427.7,248.2 428.9,246.4 428.4,240.5 430.6,240.4 430.8,242.1 432.4,241.7 436.4,235.6 437.1,237.3 440.7,237.5 440.1,242.8 447.4,246.2 447.9,253.4 446.7,256.9 447.3,258.9 446.7,261.6 445.7,262.8 443.9,261.9 442.7,262.8 442.1,268.2 444.0,275.9 443.3,277.7 441.4,277.3 439.5,280.6 435.4,278.2 435.1,280.2 433.6,280.7 432.1,267.6 429.7,264.0 429.2,258.6 430.2,258.1 427.7,248.2Z","s":"Mizoram","k":16},{"d":"M150.9,469.5 155.7,466.3 156.5,467.8 161.5,468.3 162.5,464.7 169.2,464.4 171.5,465.1 172.7,462.0 175.8,461.8 177.5,458.9 177.0,458.2 172.3,456.6 174.7,454.4 174.5,448.9 176.9,448.9 178.5,445.4 182.4,445.6 188.5,449.7 191.6,446.9 192.1,443.1 196.8,441.2 201.5,442.6 202.6,440.1 203.6,440.7 206.2,439.6 205.7,436.9 208.0,436.9 207.9,438.0 210.5,437.6 210.8,439.0 212.4,438.6 212.7,437.2 215.0,436.4 216.6,433.3 217.3,434.2 219.7,434.1 220.6,432.8 221.9,438.0 218.3,453.6 213.5,460.1 213.2,461.8 210.5,463.1 212.6,463.8 211.8,467.7 213.4,479.2 211.6,479.0 211.2,480.2 213.3,482.1 213.5,491.9 205.4,491.3 203.3,492.8 203.0,496.1 198.3,502.6 196.9,506.5 199.8,509.6 204.5,509.4 203.9,510.6 196.5,510.3 188.0,513.3 184.4,517.1 183.9,524.0 177.8,530.1 174.3,530.5 173.7,531.6 171.8,531.3 165.8,527.7 168.8,522.6 167.1,519.6 168.5,517.2 166.7,514.8 168.7,512.2 169.0,509.6 171.1,505.5 169.6,504.1 167.0,504.0 168.4,500.6 167.8,499.2 169.1,492.8 167.2,490.5 163.8,493.0 162.3,492.3 160.9,489.4 162.5,482.9 161.2,481.3 158.2,480.1 159.9,477.6 159.0,474.7 154.5,475.3 156.3,472.5 150.9,469.5Z","s":"Tamil Nadu","k":12},{"d":"M113.2,275.5 113.5,274.5 115.6,275.1 116.0,273.0 114.4,273.3 113.3,271.0 114.9,271.5 116.8,269.3 118.8,269.5 120.3,266.2 120.2,264.6 119.1,264.8 117.8,261.8 119.0,260.9 121.0,261.4 125.0,258.9 121.4,257.1 122.2,255.3 126.9,253.0 128.2,250.9 127.9,247.2 129.1,244.2 127.5,241.8 128.0,241.1 125.3,240.5 127.1,237.3 124.3,236.2 125.9,234.3 126.2,231.6 127.6,233.5 129.4,232.4 129.2,231.1 127.2,230.5 126.6,228.7 127.9,228.1 130.2,229.7 131.6,229.1 131.5,227.5 132.9,226.2 135.6,226.5 132.8,231.4 140.1,232.6 143.1,231.2 145.5,235.1 145.1,236.9 143.2,236.7 142.2,237.8 143.6,240.5 142.5,242.3 144.0,243.9 141.7,245.5 138.6,244.4 137.6,246.4 141.5,249.4 143.3,247.3 145.8,246.7 147.6,243.7 149.0,243.3 148.9,241.4 152.4,240.5 156.7,241.1 158.0,240.0 160.7,242.8 162.1,242.5 162.8,241.1 161.2,238.4 161.0,235.3 163.7,236.6 165.3,234.9 164.7,232.1 161.6,231.5 160.7,230.4 163.2,229.2 161.7,227.6 162.0,226.1 165.6,225.9 167.1,224.9 169.5,225.4 170.9,224.7 171.2,222.8 170.5,219.5 169.5,219.1 168.0,221.1 165.6,220.8 163.2,221.8 158.4,220.6 155.8,217.4 156.3,211.8 160.5,209.9 162.4,207.2 168.8,204.1 171.7,201.6 178.3,199.0 179.7,197.0 182.9,196.7 183.3,194.6 187.6,193.2 190.8,195.1 194.9,195.0 198.8,196.8 198.5,198.4 201.0,200.9 201.1,202.8 198.6,205.3 198.9,207.4 194.6,213.9 195.4,215.7 192.8,216.8 189.2,216.6 188.2,218.9 187.3,219.1 189.1,224.7 187.2,225.4 187.4,226.7 184.4,229.1 186.2,233.0 186.0,236.8 187.8,238.1 187.1,239.0 188.1,240.1 190.1,237.9 195.3,241.7 198.2,238.6 198.4,236.9 197.2,236.6 197.9,235.0 196.7,233.4 194.4,234.1 194.7,229.4 192.3,227.7 192.4,225.6 190.3,221.9 192.8,220.0 194.8,220.5 194.0,218.6 196.7,217.6 197.7,218.0 196.6,219.9 198.0,220.7 196.6,224.0 199.8,222.9 200.9,224.9 202.9,224.8 204.3,224.2 203.5,221.0 204.8,220.9 206.2,222.3 205.7,225.0 207.2,225.4 208.5,223.8 213.2,225.1 213.4,223.4 216.5,220.7 221.4,219.9 221.3,221.7 223.4,223.7 220.5,226.4 221.9,226.6 222.9,225.6 224.2,227.3 224.6,226.1 226.2,225.3 228.3,225.7 230.5,223.5 230.8,228.2 232.3,227.5 235.3,228.6 237.8,225.9 238.0,223.9 240.0,224.5 242.6,223.5 244.0,224.0 244.8,225.8 248.6,227.1 249.5,229.7 254.2,230.6 255.6,234.0 257.7,234.2 257.7,233.1 262.1,232.3 264.3,234.5 262.8,238.0 263.8,238.2 263.4,241.9 262.0,242.6 264.5,245.6 261.5,247.8 259.1,248.8 249.1,247.2 247.2,248.3 244.8,246.2 243.6,247.0 245.3,249.9 243.8,250.9 243.8,253.7 249.1,253.3 250.2,255.4 252.3,255.7 253.9,257.2 252.6,261.0 249.5,261.5 249.6,263.2 246.6,265.2 246.9,267.1 244.0,271.2 241.4,272.1 238.9,271.4 235.1,273.1 235.3,275.7 234.0,276.6 233.3,279.8 231.6,278.9 230.1,285.2 229.0,285.2 228.3,287.0 228.7,290.4 226.7,293.1 223.3,291.0 220.6,287.8 214.5,289.5 211.4,288.1 208.0,289.2 207.2,286.8 202.7,286.0 202.5,287.2 197.2,288.3 196.9,289.9 188.9,290.0 188.6,288.6 187.3,288.3 179.4,292.0 172.6,292.2 172.0,288.9 174.1,289.4 173.5,286.2 172.4,285.0 169.0,285.3 167.7,286.5 164.1,286.5 160.4,288.8 160.4,290.6 157.6,292.9 158.3,293.8 157.6,295.6 155.3,295.5 153.5,297.5 149.7,297.5 148.5,292.2 133.2,291.5 131.4,290.6 130.5,288.7 122.4,286.9 121.0,285.8 121.4,282.5 119.8,280.4 117.2,282.1 114.8,281.8 113.9,280.6 114.4,277.1 113.2,275.5Z","s":"Madhya Pradesh","k":11},{"d":"M89.0,319.9 89.2,318.1 90.4,317.4 90.0,315.6 92.8,312.8 94.4,313.2 94.4,314.6 97.4,315.4 99.3,314.7 100.2,313.1 102.2,313.2 102.0,310.0 103.2,306.4 102.0,305.7 103.2,303.9 106.3,306.7 109.5,305.7 111.3,301.8 109.7,298.9 106.5,296.1 109.1,295.8 109.2,294.0 111.3,293.5 111.6,291.8 113.1,290.9 117.8,289.9 117.0,288.8 115.1,288.7 109.4,289.5 109.1,287.3 110.2,286.0 109.1,283.8 114.8,281.8 117.2,282.1 119.8,280.4 121.4,282.5 121.0,285.8 122.4,286.9 130.5,288.7 131.4,290.6 133.2,291.5 148.5,292.2 149.7,297.5 153.5,297.5 155.3,295.5 157.6,295.6 158.3,293.8 157.6,292.9 160.4,290.6 160.3,288.8 164.1,286.4 167.7,286.5 169.0,285.3 172.4,285.0 173.5,286.2 174.1,289.4 172.0,289.0 172.6,292.2 179.4,292.0 187.3,288.3 188.6,288.6 188.9,290.0 196.9,289.9 197.2,288.3 202.5,287.2 202.7,286.0 207.2,286.8 208.0,289.2 211.4,288.1 214.5,289.5 220.6,287.8 223.3,291.0 227.4,292.9 226.6,294.8 224.0,295.8 223.5,297.2 224.0,300.2 225.4,300.1 226.0,304.8 225.0,306.5 226.6,306.4 226.8,310.9 222.8,312.5 223.4,314.5 225.4,315.1 224.0,320.0 225.4,320.2 228.3,323.8 231.4,325.6 230.7,328.4 228.9,329.7 226.5,329.3 225.9,327.8 224.3,328.8 221.7,332.3 220.6,335.9 222.0,337.7 220.7,340.0 218.0,340.7 214.5,338.1 215.3,337.3 214.9,334.3 213.5,333.1 214.7,332.1 215.6,327.7 212.6,324.5 211.5,323.9 206.8,325.9 203.0,324.2 202.0,326.6 200.3,325.3 197.6,325.0 197.9,323.1 196.3,322.5 195.9,321.2 188.9,320.3 186.7,318.5 187.7,320.9 186.2,322.5 186.7,326.2 185.1,327.2 184.4,330.6 180.4,328.8 179.0,329.4 177.9,333.6 178.7,336.6 180.5,337.7 178.6,338.4 177.7,340.6 176.7,340.9 176.9,342.9 174.4,343.0 173.2,346.2 173.6,347.7 172.2,348.2 171.2,347.5 171.3,345.9 169.6,345.0 165.2,350.2 163.3,349.5 162.7,354.4 159.7,354.8 160.5,356.1 159.2,356.9 158.7,358.7 155.9,357.2 155.3,359.0 152.6,360.2 153.5,365.3 150.8,364.3 145.7,365.1 145.0,363.7 143.6,364.2 140.5,362.3 139.5,364.0 140.9,366.0 141.1,371.3 134.4,371.7 134.1,373.4 132.7,373.8 131.1,371.8 127.9,373.4 128.2,375.0 124.3,376.1 123.2,378.4 122.1,379.0 121.7,377.5 117.7,379.0 117.8,383.1 118.7,384.2 120.6,384.4 120.6,386.3 118.7,387.5 120.3,388.2 118.3,393.2 115.9,392.9 114.4,394.0 114.3,395.2 112.1,395.9 111.2,393.6 106.9,393.8 105.2,390.6 103.8,390.1 101.4,382.4 99.8,372.9 100.0,368.9 94.5,350.7 94.5,348.6 95.5,348.2 93.5,346.5 93.9,343.2 91.6,336.6 92.2,334.0 89.0,319.9Z","s":"Maharashtra","k":5},{"d":"M220.6,336.0 221.7,332.3 224.3,328.8 225.9,327.8 226.5,329.3 228.9,329.7 230.7,328.4 231.4,325.6 228.3,323.8 225.4,320.2 224.0,320.0 225.4,315.1 223.4,314.5 222.8,312.5 226.8,310.9 226.6,306.4 224.9,306.5 226.0,304.8 225.4,300.1 224.0,300.2 224.0,295.8 226.6,294.8 228.7,290.4 228.3,287.0 229.0,285.2 230.1,285.2 231.6,278.9 233.3,279.8 234.0,276.6 235.3,275.6 235.1,273.1 238.9,271.4 241.4,272.1 244.0,271.2 246.9,267.1 246.6,265.2 249.6,263.2 249.5,261.5 252.6,261.0 253.9,257.2 252.3,255.7 250.2,255.4 249.1,253.3 243.8,253.7 243.8,250.9 245.3,249.9 243.6,247.0 244.8,246.2 247.2,248.3 249.1,247.2 259.1,248.8 264.5,245.6 266.9,247.2 269.4,247.2 271.4,246.3 273.5,243.1 275.2,243.3 277.6,247.4 280.0,248.1 281.2,251.9 284.0,252.7 285.3,251.5 284.4,255.9 286.3,256.9 286.2,260.8 288.1,263.2 291.5,263.3 291.9,264.2 289.2,268.4 285.2,270.6 285.9,272.5 285.2,274.2 282.7,274.7 278.6,277.2 277.1,280.1 278.0,284.0 275.7,286.3 276.2,287.3 274.4,287.7 273.6,289.9 274.6,292.7 272.4,292.1 271.1,296.4 261.6,296.1 258.4,302.0 256.4,301.2 257.0,305.5 256.2,306.8 258.1,309.1 257.4,315.9 262.9,317.1 262.5,320.0 260.8,321.0 259.7,319.1 258.2,318.5 256.5,319.9 255.1,317.4 249.6,315.0 248.3,316.0 248.2,318.7 251.6,320.7 251.0,325.8 252.2,325.6 252.7,327.2 253.8,327.2 253.3,331.3 254.7,336.4 253.6,336.7 253.2,338.7 252.1,339.6 248.8,341.0 249.0,342.7 246.2,346.5 244.6,346.7 242.4,348.6 240.1,356.2 236.1,355.5 233.5,356.6 232.9,349.9 230.9,350.4 230.7,349.2 229.0,349.9 228.1,345.0 226.9,343.5 223.8,341.6 222.4,341.9 220.7,340.0 222.0,337.7 220.6,336.0Z","s":"Chhattisgarh","k":21},{"d":"M10.4,250.7 11.6,250.4 12.3,247.1 14.5,245.5 21.7,245.4 21.8,239.6 23.3,240.6 25.0,239.4 26.0,240.9 27.5,240.0 29.3,240.6 36.2,239.6 38.6,241.8 43.6,241.8 45.1,239.6 53.1,237.3 53.1,240.4 57.1,240.9 60.2,238.3 61.3,238.5 62.2,237.0 60.4,236.9 60.2,234.2 62.4,232.7 65.4,233.8 68.7,232.7 71.8,233.4 78.7,232.1 80.6,233.7 83.7,233.6 86.4,237.4 87.1,235.5 89.5,236.5 90.3,238.3 94.3,238.4 95.0,236.2 96.5,235.9 96.3,237.8 97.6,238.5 96.2,241.4 99.2,244.9 102.0,244.1 101.4,248.2 104.0,252.0 104.9,251.1 106.4,251.7 105.9,254.8 108.1,254.7 110.4,256.9 111.6,256.0 114.7,258.1 114.5,259.7 116.6,259.6 119.1,264.8 120.2,264.6 118.8,269.5 116.8,269.3 114.9,271.5 113.3,271.0 114.4,273.3 116.0,273.0 115.6,275.1 113.5,274.5 113.2,275.5 114.4,277.1 113.9,280.6 114.8,281.8 109.1,283.8 110.2,286.0 109.1,287.3 109.4,289.5 115.1,288.7 117.1,288.8 117.8,289.9 113.1,290.9 111.6,291.8 111.3,293.5 109.2,294.0 109.1,295.8 106.5,296.1 110.4,300.1 111.3,301.8 110.9,303.9 107.9,306.7 106.3,306.7 103.2,304.0 102.0,305.7 103.2,306.4 102.0,310.0 102.2,313.2 100.2,313.1 98.7,314.7 97.3,313.3 97.9,311.7 95.8,311.1 93.9,311.6 94.4,313.2 92.8,312.8 91.1,314.5 90.5,312.5 93.1,308.6 93.4,306.5 90.7,297.8 88.5,297.1 88.1,293.2 90.4,290.3 88.3,288.4 89.8,287.3 87.1,285.7 88.5,284.3 86.5,281.9 87.5,277.6 88.9,277.0 90.7,277.8 94.1,275.6 86.6,275.1 85.7,276.3 84.2,275.2 81.3,282.9 81.9,284.1 81.1,285.4 83.1,287.7 79.6,293.5 79.7,295.3 69.3,299.9 68.0,301.3 57.5,304.5 50.9,301.6 44.8,296.8 32.3,284.0 32.7,283.0 32.0,283.8 29.7,281.7 24.8,275.3 26.0,273.0 28.7,274.6 29.0,277.1 42.8,271.1 45.4,270.9 47.0,268.0 50.1,264.6 51.0,265.7 55.6,259.5 48.6,259.0 44.6,264.3 37.1,266.6 33.1,266.3 28.2,265.2 19.6,259.8 17.8,257.9 18.1,256.5 15.6,255.3 15.8,254.1 14.3,254.0 14.0,252.5 11.1,252.1 10.4,250.7ZM82.8,281.5 84.2,280.4 85.3,282.2 83.9,284.5 82.8,281.5Z","s":"Gujarat","k":3},{"d":"M240.1,356.2 242.4,348.6 244.6,346.7 246.2,346.5 249.0,342.7 248.8,341.0 252.1,339.6 253.2,338.7 253.6,336.7 254.7,336.4 253.3,331.3 253.8,327.2 252.7,327.2 252.2,325.6 251.0,325.8 251.6,320.7 248.2,318.7 248.3,316.0 249.6,315.0 255.1,317.4 256.5,319.9 258.2,318.5 259.7,319.1 260.8,320.9 262.5,320.0 262.9,317.1 257.4,315.9 258.1,309.1 256.2,306.8 257.0,305.5 256.4,301.2 258.4,302.0 261.6,296.1 271.1,296.4 272.4,292.1 274.6,292.7 273.6,289.9 274.4,287.7 276.2,287.3 275.7,286.3 278.0,284.0 277.1,280.1 278.6,277.2 282.7,274.7 285.2,274.2 285.9,272.5 285.3,271.4 290.1,274.7 292.5,274.6 294.3,273.2 298.0,273.3 303.5,272.1 302.8,278.7 306.4,280.7 309.2,278.0 315.3,279.6 315.9,281.2 317.8,281.2 320.1,277.5 319.1,276.4 320.1,274.9 319.0,272.2 320.8,270.9 321.7,272.1 324.5,272.8 325.8,274.6 328.2,274.7 332.2,277.0 334.1,279.1 336.3,279.4 337.4,280.2 336.9,282.5 338.6,283.3 338.7,282.3 341.1,281.5 341.8,284.4 344.5,285.1 345.2,287.8 343.9,289.1 339.4,289.7 336.0,292.5 334.4,295.1 334.3,297.2 336.5,301.4 336.3,302.7 333.8,303.4 337.3,303.0 337.9,304.0 333.2,307.3 332.3,308.6 333.0,310.9 328.8,313.7 326.0,317.2 308.4,324.3 302.0,329.2 298.3,333.5 297.2,332.8 295.3,334.5 293.9,334.0 290.6,338.7 286.6,339.3 285.7,338.2 283.2,338.2 281.5,334.6 280.7,335.0 280.8,336.5 279.2,333.1 276.1,334.3 275.7,335.7 273.8,334.6 273.3,335.4 274.9,337.2 271.3,339.4 270.1,338.8 267.8,342.0 268.5,343.1 268.1,344.7 269.1,345.7 267.2,346.4 264.4,344.8 263.9,346.8 260.6,347.9 261.0,346.3 258.9,343.4 256.8,345.3 256.0,352.1 254.8,353.1 251.0,351.7 243.9,356.1 240.1,356.2Z","s":"Odisha","k":15},{"d":"M160.0,407.1 160.7,405.2 163.9,406.7 166.1,406.3 166.8,404.4 166.7,401.7 165.2,401.0 164.7,399.1 164.7,395.5 165.6,395.1 164.6,391.9 165.4,390.6 168.4,389.6 175.5,391.0 179.4,390.6 182.8,391.8 184.4,391.5 185.8,388.8 188.5,387.6 190.9,388.2 191.8,387.4 194.2,388.8 199.2,384.6 202.4,384.9 203.1,378.8 212.4,375.9 215.1,377.5 216.9,375.5 216.9,371.5 219.2,370.6 221.2,371.4 221.5,373.1 225.8,375.1 226.3,372.4 222.2,371.4 226.0,368.2 230.5,370.2 232.2,367.0 236.2,366.8 236.5,365.1 238.0,365.2 238.6,363.6 233.6,361.6 231.3,357.7 232.8,356.9 234.2,357.7 236.1,355.5 237.8,356.3 243.9,356.1 251.0,351.7 254.8,353.1 256.0,352.1 256.7,345.3 258.9,343.4 261.0,346.3 260.6,347.9 263.9,346.8 264.4,344.8 267.2,346.4 269.1,345.7 268.1,344.7 268.5,343.1 267.8,342.0 270.1,338.8 271.3,339.4 274.9,337.2 273.3,335.4 273.8,334.6 275.7,335.7 276.1,334.3 279.2,333.1 280.8,336.5 280.7,335.0 281.5,334.6 283.2,338.2 285.7,338.2 286.6,339.3 290.6,338.7 293.9,334.0 295.3,334.5 297.2,332.8 298.3,333.6 287.3,347.3 279.2,351.5 270.6,360.9 259.9,366.5 256.0,369.9 254.8,372.1 254.8,373.2 256.7,373.5 255.9,378.9 245.6,383.3 240.0,382.8 237.8,383.9 235.8,389.4 232.2,394.1 230.3,394.2 229.3,391.3 227.7,391.0 221.4,393.9 218.1,400.3 216.6,406.8 219.3,414.4 218.2,420.8 220.6,432.8 219.7,434.1 217.3,434.2 216.6,433.3 215.0,436.4 212.7,437.2 212.4,438.6 210.8,439.0 210.5,437.6 207.9,438.0 207.9,436.9 205.7,436.9 206.2,439.6 203.6,440.7 202.6,440.1 201.5,442.6 196.8,441.2 194.4,442.0 192.1,443.1 191.6,446.9 188.5,449.7 186.6,449.0 185.4,447.3 185.8,445.5 189.5,443.4 191.5,438.0 187.7,436.4 188.3,432.4 184.8,432.7 183.4,427.4 181.4,427.2 180.9,425.7 178.2,426.5 177.6,428.2 172.0,430.7 171.6,427.8 167.2,427.3 165.2,429.6 163.7,428.1 164.8,426.2 162.9,424.4 162.3,421.9 164.2,421.4 164.6,423.8 167.1,424.7 169.7,424.4 171.0,426.6 171.6,425.9 170.9,421.8 172.8,422.1 172.4,419.7 171.2,418.9 170.4,420.0 166.5,418.9 166.1,420.9 164.2,420.7 162.1,418.7 162.4,416.1 160.1,414.1 161.8,407.5 160.0,407.1Z","s":"Andhra Pradesh","k":14},{"d":"M113.8,408.7 115.8,408.3 117.4,406.2 117.8,403.6 116.8,402.6 117.9,401.8 116.4,394.9 114.3,395.2 114.4,394.0 115.9,392.9 118.3,393.2 120.3,388.2 118.7,387.5 120.6,386.3 120.6,384.4 118.7,384.2 117.8,383.1 117.7,379.0 121.7,377.5 122.1,378.9 123.2,378.4 124.3,376.1 128.2,375.0 127.9,373.4 131.1,371.8 132.7,373.8 134.1,373.4 134.4,371.7 141.1,371.3 140.9,366.0 139.5,364.0 140.5,362.3 143.6,364.2 145.0,363.7 145.7,365.1 150.8,364.3 153.4,365.3 152.6,360.2 155.3,359.0 155.9,357.2 158.7,358.6 159.2,356.9 160.5,356.1 159.6,354.7 162.7,354.4 163.3,349.5 165.2,350.2 168.7,345.3 171.3,345.9 171.2,347.5 172.2,348.2 174.5,348.0 173.8,349.4 174.5,351.3 173.6,351.9 175.5,353.5 171.9,358.4 171.8,360.4 176.0,361.7 173.0,363.2 170.7,366.9 170.4,368.1 172.7,370.2 171.5,376.0 171.9,377.8 171.3,379.6 168.3,380.4 169.1,381.6 174.4,382.8 172.8,384.9 173.0,390.2 168.4,389.6 165.4,390.6 164.6,391.9 165.6,395.1 164.7,395.5 164.7,399.1 165.2,401.0 166.7,401.7 166.8,404.4 166.1,406.3 163.9,406.7 160.7,405.2 160.0,407.1 161.8,407.5 160.1,414.1 162.4,416.1 162.1,418.7 164.2,420.7 166.1,420.9 166.5,418.9 170.4,420.0 171.2,418.9 172.4,419.7 172.8,422.1 170.9,421.8 171.6,425.9 171.0,426.6 169.7,424.4 167.1,424.7 164.6,423.8 164.2,421.4 162.3,421.9 162.9,424.4 164.8,426.2 163.7,428.1 165.2,429.6 167.2,427.3 171.6,427.8 172.0,430.7 177.6,428.2 178.2,426.5 180.9,425.7 181.4,427.2 183.4,427.4 184.8,432.7 188.3,432.4 187.7,436.4 191.5,438.0 189.5,443.4 185.8,445.5 185.4,447.3 180.2,444.9 178.5,445.4 176.9,448.9 174.5,448.9 174.7,454.4 172.3,456.6 177.0,458.2 177.5,458.9 175.8,461.8 172.7,462.0 171.5,465.1 169.2,464.4 162.5,464.7 161.5,468.3 156.5,467.8 155.7,466.3 154.1,466.9 154.0,465.3 152.3,465.4 150.4,463.5 148.8,463.5 148.8,461.3 146.9,462.2 144.6,461.8 143.3,459.9 139.5,458.1 137.9,455.7 136.7,455.7 136.9,454.3 135.9,453.5 136.7,452.0 134.4,451.5 131.5,448.7 127.3,447.3 122.4,426.3 121.2,425.2 116.8,412.0 114.3,410.8 113.8,408.7Z","s":"Karnataka","k":0},{"d":"M106.9,393.8 111.2,393.6 112.1,395.9 116.4,394.9 117.9,401.8 116.8,402.6 117.8,403.6 117.4,406.2 115.8,408.3 113.8,408.7 112.0,406.0 110.3,400.6 111.2,399.2 108.3,398.0 106.9,393.8Z","s":"Goa","k":5},{"d":"M127.3,447.3 131.5,448.7 134.4,451.5 136.8,452.0 135.9,453.5 136.9,454.3 136.7,455.7 137.9,455.7 139.5,458.1 143.3,459.9 144.6,461.8 146.9,462.2 148.8,461.3 148.8,463.5 150.4,463.5 152.3,465.4 154.0,465.3 153.4,468.1 150.9,469.5 156.3,472.5 154.5,475.3 157.7,475.5 159.1,474.7 159.9,477.5 158.2,480.1 161.2,481.3 162.5,482.9 161.3,486.2 161.2,490.9 163.8,493.0 167.2,490.5 169.1,492.8 167.8,499.2 168.4,500.6 167.0,504.0 169.6,504.1 171.1,505.5 169.0,509.6 168.8,512.2 166.7,514.8 168.5,517.2 167.1,519.6 168.8,522.6 165.8,527.7 156.3,516.7 152.4,506.3 150.3,493.6 149.6,493.7 145.3,482.7 141.6,471.3 140.2,470.4 139.1,466.3 133.9,460.8 133.0,460.8 127.3,447.3Z","s":"Kerala","k":13},{"d":"M168.3,380.4 171.3,379.6 171.9,377.8 171.5,376.0 172.7,370.2 170.4,368.1 170.7,366.9 173.0,363.2 175.9,361.7 171.8,360.4 171.9,358.4 175.5,353.5 173.6,351.9 174.5,351.3 173.8,349.4 174.5,348.0 173.2,346.2 174.4,343.0 176.9,342.9 176.7,340.9 177.7,340.6 178.6,338.4 180.5,337.7 178.7,336.6 177.9,333.6 179.0,329.4 180.4,328.8 184.4,330.6 185.0,327.2 186.7,326.2 186.2,322.5 187.7,320.9 186.7,318.5 188.9,320.3 195.9,321.2 196.3,322.5 197.9,323.1 197.6,325.0 200.3,325.3 202.0,326.6 203.0,324.2 206.8,325.9 211.5,323.9 215.0,326.4 215.6,327.7 214.7,332.1 213.5,333.1 214.9,334.3 215.3,337.3 214.5,338.1 218.0,340.7 220.7,340.0 222.4,341.9 223.8,341.6 226.9,343.5 228.1,345.0 229.0,349.9 230.7,349.2 230.9,350.4 232.9,349.9 233.5,356.6 234.7,356.6 234.2,357.7 232.8,356.9 231.3,357.7 231.7,359.4 233.6,361.6 238.6,363.6 238.0,365.2 236.5,365.1 236.2,366.8 232.2,367.0 230.5,370.2 226.0,368.2 222.2,371.3 226.3,372.4 225.8,375.1 221.5,373.1 221.2,371.4 219.2,370.6 216.9,371.4 216.9,375.5 215.1,377.5 212.4,375.9 203.1,378.8 202.4,384.9 199.2,384.6 194.2,388.8 191.8,387.4 190.9,388.2 188.5,387.6 185.8,388.8 184.4,391.5 173.0,390.2 172.8,384.9 174.4,382.8 169.1,381.6 168.3,380.4Z","s":"Telangana","k":2},{"d":"M316.5,258.1 317.6,256.6 317.6,254.2 320.3,253.9 321.0,252.7 322.3,252.8 322.7,254.4 325.0,255.5 328.0,251.4 333.4,250.3 333.4,247.9 335.4,247.0 338.3,248.3 340.9,247.5 342.0,246.7 340.9,244.4 344.5,245.2 347.8,241.9 347.9,240.3 349.1,240.2 350.7,238.0 350.6,234.4 352.2,234.7 352.6,231.9 351.4,231.5 353.5,228.3 350.6,225.3 350.3,222.4 349.2,222.2 351.0,222.5 351.5,221.5 350.1,219.4 351.9,217.9 353.5,217.2 355.3,218.1 354.5,216.1 355.0,214.3 353.6,213.8 351.1,210.0 351.6,208.2 359.0,202.9 358.3,200.6 356.1,199.0 357.4,195.0 354.0,188.9 354.8,186.9 356.8,188.9 359.0,188.5 361.5,189.6 364.5,187.5 369.1,188.9 369.2,191.5 370.1,191.0 373.0,192.9 373.6,194.4 377.9,193.5 386.1,196.3 386.0,202.0 383.5,204.9 384.0,205.8 382.4,204.8 382.7,207.7 380.8,208.8 377.5,208.7 374.1,206.4 373.1,201.8 371.1,200.8 369.9,202.0 371.2,202.6 370.2,203.8 367.3,202.9 361.4,198.7 361.1,197.3 359.9,199.9 362.5,200.6 363.1,202.3 357.2,206.2 355.8,210.1 356.6,212.6 358.8,212.8 362.0,214.9 361.9,216.2 365.3,218.3 368.2,217.5 368.7,220.3 371.2,222.0 369.9,223.6 361.7,223.3 362.0,225.4 361.0,227.4 359.0,228.9 358.1,227.6 356.6,228.4 357.2,229.4 354.6,232.5 356.5,235.7 363.8,239.3 366.0,239.0 367.0,240.3 366.3,243.1 366.8,246.5 364.6,247.4 363.9,250.1 367.3,254.9 366.4,258.7 368.2,258.3 370.4,259.2 369.0,263.5 370.9,265.7 369.9,267.3 370.8,268.4 370.2,269.2 371.3,275.7 372.6,277.2 372.6,281.8 371.6,282.7 368.9,282.3 367.3,281.7 367.3,280.6 363.3,283.5 361.8,282.4 360.9,282.8 358.8,285.8 359.4,286.8 358.6,288.9 356.7,281.7 357.9,279.0 355.6,276.2 354.1,276.5 356.5,277.6 357.4,279.0 350.5,286.3 345.2,287.8 344.5,285.1 341.8,284.4 341.1,281.5 338.8,282.3 338.6,283.4 336.9,282.5 337.4,280.2 334.1,279.1 332.2,277.0 334.2,273.7 332.8,273.2 333.4,272.1 332.8,270.5 331.0,270.5 330.7,269.1 326.8,266.7 327.1,264.2 328.2,263.0 323.8,263.0 320.4,260.3 317.6,259.9 316.5,258.1ZM368.3,282.2 370.5,282.4 370.5,285.1 368.3,282.2ZM366.1,285.4 366.5,282.6 367.6,283.3 368.1,286.9 367.0,287.0 366.1,285.4ZM354.7,286.5 355.9,283.7 357.0,284.1 356.3,286.8 354.7,286.5Z","s":"West Bengal","k":6},{"d":"M93.9,311.6 95.8,311.1 97.9,311.7 97.3,313.3 98.7,314.7 97.4,315.4 94.4,314.6 93.9,311.6Z","s":"Dadra and Nagar Haveli and Daman and Diu","k":19},{"d":"M211.2,480.2 211.6,479.0 213.4,479.2 213.3,482.1 211.2,480.2ZM210.5,463.1 213.2,461.8 212.6,463.8 210.5,463.1Z","s":"Puducherry","k":7},{"d":"M415.7,179.5 416.9,176.4 420.2,176.3 421.2,177.9 427.7,175.3 428.6,176.8 433.0,176.1 435.9,173.3 434.7,171.7 435.1,170.6 441.0,167.4 444.4,166.7 443.7,165.1 446.4,161.3 457.2,160.0 457.8,157.7 460.5,155.7 462.8,152.2 465.3,150.8 467.5,150.7 469.5,149.0 472.9,151.6 482.9,154.2 484.4,151.0 493.9,146.6 496.6,150.7 499.2,150.3 498.3,151.8 496.1,152.4 495.0,154.0 496.6,155.9 498.3,154.3 499.9,154.2 502.9,158.6 502.5,159.9 500.5,160.5 500.9,161.5 498.0,163.7 498.8,164.2 497.8,166.0 503.8,164.6 505.8,166.3 507.8,166.0 509.5,167.3 511.2,166.3 516.0,168.9 515.3,171.8 516.3,172.8 516.1,174.5 514.0,174.7 508.0,179.8 507.3,179.5 508.5,181.7 508.0,182.7 512.5,188.3 510.7,189.2 507.2,187.5 507.6,186.2 506.1,184.6 502.8,184.3 501.1,185.5 497.7,185.6 492.7,187.6 491.4,190.0 488.9,190.6 488.0,192.7 486.9,192.6 485.6,194.2 483.7,194.2 482.5,196.3 480.3,197.2 479.1,196.6 478.5,190.2 482.8,188.5 484.3,186.1 486.0,186.7 489.9,186.0 492.6,184.2 490.3,183.0 490.2,181.1 488.6,179.7 488.5,177.7 491.8,173.6 485.6,173.7 484.0,175.0 477.4,176.2 465.8,180.9 461.9,179.5 462.4,181.5 454.5,188.2 454.9,189.7 452.0,191.4 448.7,192.0 440.9,192.4 438.6,190.9 434.9,190.3 433.0,191.6 425.2,192.8 425.1,190.7 423.8,189.7 424.5,185.9 423.5,182.1 417.3,182.2 415.7,179.5Z","s":"Arunachal Pradesh","k":16},{"d":"M383.5,205.0 386.0,202.0 386.3,195.6 392.1,195.0 392.7,193.4 395.9,192.6 401.1,195.0 406.9,194.8 407.7,194.1 411.8,194.8 413.0,193.7 414.5,194.6 418.1,194.2 421.4,192.3 424.2,193.6 425.2,192.8 433.0,191.6 434.9,190.3 438.6,190.9 440.9,192.4 452.0,191.4 454.9,189.7 454.5,188.2 457.7,185.0 462.4,181.5 461.9,179.5 465.8,180.9 477.4,176.2 484.0,175.0 485.6,173.7 491.8,173.6 488.5,177.7 488.6,179.7 490.2,181.1 490.3,183.0 492.6,184.2 489.9,186.0 483.4,186.5 482.8,188.5 474.8,192.4 473.8,191.8 470.5,195.4 467.9,195.8 464.8,197.9 464.7,199.3 463.2,200.6 462.7,198.8 457.8,205.8 457.4,210.4 455.8,211.7 454.0,211.6 453.9,209.4 446.2,217.1 448.4,219.1 448.6,221.4 447.1,222.6 443.5,230.5 442.4,230.3 442.0,234.6 440.7,237.5 437.1,237.3 436.4,235.7 432.5,241.7 430.8,242.1 430.5,240.4 427.0,239.7 427.7,238.4 427.0,235.7 428.4,231.6 427.3,228.7 428.4,228.4 429.9,229.6 432.2,229.0 430.6,226.3 431.6,224.9 434.0,224.8 436.9,221.8 433.1,218.5 434.7,216.6 433.4,217.0 430.9,213.9 425.9,214.8 426.7,210.5 426.1,209.4 428.0,207.7 421.0,208.1 420.2,206.7 418.5,208.2 418.5,209.5 416.0,208.3 413.7,211.8 411.8,211.7 409.8,213.9 408.5,211.6 406.1,212.0 406.4,210.9 405.1,209.8 399.6,210.3 396.2,209.0 390.8,209.6 387.0,213.8 389.0,215.9 386.6,217.0 386.1,218.5 386.7,215.8 385.7,213.7 386.7,209.9 383.5,205.0Z","s":"Assam","k":16},{"d":"M446.2,217.1 453.9,209.4 454.0,211.6 455.8,211.7 457.4,210.4 457.8,205.8 462.7,198.8 463.2,200.6 464.7,199.3 464.8,197.9 467.9,195.8 470.5,195.4 473.8,191.8 474.8,192.4 478.5,190.2 479.1,196.6 476.2,200.8 477.2,202.6 477.1,206.9 478.3,207.6 475.3,210.8 475.8,213.5 471.8,218.0 469.5,218.9 466.2,216.0 463.4,217.8 457.9,216.7 453.8,217.2 454.4,218.5 451.0,223.3 449.2,222.5 448.4,219.1 446.2,217.1Z","s":"Nagaland","k":16},{"d":"M385.5,219.9 386.6,217.0 389.0,215.9 387.0,213.8 390.8,209.6 396.2,209.0 399.6,210.3 405.1,209.8 406.4,210.9 406.1,212.0 408.5,211.6 409.8,213.9 411.8,211.7 413.7,211.8 416.0,208.3 418.4,209.5 418.5,208.2 420.2,206.7 421.0,208.1 428.0,207.7 426.1,209.4 426.7,210.5 425.9,214.8 430.9,213.9 433.3,217.0 434.7,216.6 433.1,218.5 436.9,221.8 434.0,224.8 431.6,224.9 430.6,226.3 424.7,223.6 414.5,224.5 412.1,222.7 396.4,224.3 388.3,221.5 385.9,221.5 385.5,219.9Z","s":"Meghalaya","k":16},{"d":"M440.1,242.8 442.4,230.3 443.6,230.5 447.1,222.6 448.6,221.4 451.0,223.3 454.4,218.5 453.7,217.2 457.9,216.7 459.7,217.5 461.1,217.0 461.4,217.9 465.0,217.2 466.2,216.0 467.3,216.4 467.4,217.8 469.5,218.9 467.7,223.0 469.1,224.8 470.5,224.8 470.7,226.2 468.7,231.3 464.3,236.0 464.8,237.0 460.5,247.6 458.1,246.2 454.5,246.2 453.3,244.8 451.3,244.7 449.3,245.9 447.1,243.3 444.9,244.5 440.1,242.8Z","s":"Manipur","k":16},{"d":"M408.7,249.5 409.9,249.7 409.8,247.1 411.2,244.9 416.9,243.0 417.3,241.5 419.0,242.3 418.9,240.5 421.9,242.9 421.9,238.8 425.7,237.2 426.0,235.4 427.0,235.7 427.8,238.4 427.0,239.7 429.0,241.6 427.8,249.8 425.3,249.7 424.3,251.3 422.2,250.5 422.3,255.2 419.9,253.7 420.5,256.2 419.1,258.1 419.9,261.8 418.4,263.1 415.9,263.5 413.8,258.2 411.5,257.9 410.4,254.1 408.8,252.2 408.7,249.5Z","s":"Tripura","k":16},{"d":"M451.7,548.7 452.2,547.6 455.0,546.7 455.5,547.3 456.3,551.9 455.7,554.7 454.4,555.2 451.7,548.7ZM451.1,545.4 452.6,543.0 453.4,544.2 452.8,545.4 451.5,546.6 451.1,545.4ZM435.3,455.0 435.9,445.9 437.0,445.4 437.8,435.9 440.3,432.6 441.3,433.4 441.6,438.0 441.1,441.5 439.8,442.7 439.0,442.0 438.1,444.7 439.2,445.0 440.1,451.2 437.6,455.5 438.3,455.5 438.0,458.1 436.0,456.5 437.4,455.4 435.3,455.0ZM435.7,511.0 436.9,510.7 437.5,512.5 435.8,512.7 435.7,511.0ZM432.5,462.5 433.6,463.7 434.7,457.1 436.3,457.8 435.9,459.5 436.8,460.1 435.5,461.4 436.9,463.0 436.3,466.3 434.7,467.2 436.2,468.0 434.8,469.9 432.8,466.0 432.5,462.5ZM433.4,471.8 434.3,469.8 435.2,472.2 433.6,472.7 433.4,471.8ZM429.8,482.9 432.2,480.8 433.6,484.7 432.4,487.6 430.7,487.1 429.8,482.9Z","s":"Andaman and Nicobar Islands","k":14},{"d":"M165.9,143.5 168.0,137.9 174.2,131.3 174.1,129.6 175.5,129.6 180.7,132.5 178.0,135.1 176.5,138.9 178.3,142.7 180.1,142.0 181.8,144.4 187.2,140.5 190.2,141.8 192.1,144.8 197.4,147.0 194.5,150.1 197.4,152.7 199.3,151.8 203.1,155.0 208.8,157.6 212.8,156.9 215.2,159.8 216.5,159.4 217.1,157.8 220.7,160.0 221.4,161.5 223.9,161.6 225.5,160.4 227.5,161.3 228.3,162.6 236.9,166.4 238.8,169.3 248.5,175.4 249.8,174.2 251.7,174.2 258.3,178.6 262.7,178.2 263.2,182.1 271.0,182.7 272.8,184.8 274.8,183.4 274.6,182.2 278.4,182.4 282.1,184.2 284.9,187.7 284.4,189.4 285.9,190.1 286.1,192.9 289.5,194.4 292.3,197.5 287.0,197.5 283.6,199.8 283.5,200.8 287.8,202.1 288.1,204.1 286.5,204.9 286.0,207.1 295.8,212.6 295.4,213.7 294.7,214.6 290.9,213.5 290.6,214.9 288.6,214.8 287.5,213.7 282.4,219.1 273.8,223.6 274.6,230.8 276.2,231.6 276.8,235.0 274.7,235.9 274.8,240.1 273.5,243.1 271.4,246.3 269.3,247.2 266.9,247.2 262.0,242.6 263.4,241.9 263.8,238.2 262.8,238.0 264.3,234.5 263.9,233.3 262.7,233.4 262.1,232.3 257.7,233.1 257.7,234.2 255.6,234.0 254.2,230.6 249.5,229.7 248.6,227.1 244.8,225.8 244.0,224.0 238.0,223.9 237.8,225.9 235.3,228.6 232.3,227.5 230.8,228.2 230.5,223.5 228.3,225.7 226.2,225.3 224.6,226.1 224.2,227.3 222.9,225.6 221.8,226.6 220.5,226.4 223.4,223.7 221.3,221.7 221.4,219.9 219.8,219.7 216.5,220.7 213.5,223.4 213.2,225.1 208.5,223.8 207.2,225.4 205.7,225.0 206.2,222.3 204.8,220.9 203.2,222.0 204.3,224.2 200.9,224.9 199.8,222.9 196.6,224.0 198.0,220.7 196.6,219.9 197.7,218.0 196.7,217.6 194.0,218.6 194.8,220.5 192.8,220.0 190.3,221.9 192.4,225.6 192.3,227.7 194.7,229.4 194.4,234.1 196.6,233.3 197.9,235.0 197.2,236.6 198.4,236.9 198.2,238.6 195.3,241.7 190.1,237.9 188.1,240.2 187.1,239.0 187.8,238.1 186.0,236.8 186.2,233.0 184.4,229.1 187.4,226.7 187.2,225.4 189.1,224.7 187.3,219.1 188.2,218.9 189.2,216.6 192.8,216.8 195.4,215.7 194.6,213.9 198.9,207.4 198.6,205.3 201.1,202.8 201.0,200.9 198.5,198.4 198.8,196.8 194.9,195.0 190.8,195.1 187.6,193.2 185.2,193.9 186.1,192.3 184.0,191.8 183.3,192.7 181.2,192.9 177.3,192.1 172.0,195.5 171.0,193.9 175.5,191.4 173.6,188.9 175.5,187.8 175.3,186.5 170.0,181.4 170.2,179.1 169.0,176.5 173.3,174.2 172.3,171.3 172.8,166.2 169.3,162.6 170.0,161.9 167.7,158.6 168.1,156.3 166.6,151.9 165.9,143.5Z","s":"Uttar Pradesh","k":10},{"d":"M34.3,194.4 36.1,187.6 43.6,180.7 45.5,176.4 49.6,172.6 53.4,172.7 56.3,177.9 58.8,178.1 64.0,175.8 72.0,175.0 75.6,173.7 75.7,174.4 76.5,170.7 81.3,165.8 82.9,160.8 84.7,158.8 94.1,154.4 99.9,144.6 101.9,137.8 108.9,135.6 111.7,133.4 110.5,137.3 121.4,137.9 122.0,139.2 120.6,141.4 122.9,141.3 122.7,148.3 127.0,147.6 131.0,150.7 136.6,150.2 136.3,153.7 138.7,155.4 137.8,156.2 139.3,161.8 147.8,168.9 146.4,174.1 145.7,174.2 146.3,175.5 149.9,176.5 150.7,175.9 149.6,172.9 151.3,171.7 152.3,172.6 153.1,170.6 152.2,169.7 156.2,172.3 156.2,173.3 158.4,172.6 158.7,171.3 161.6,168.9 163.6,170.4 162.3,177.7 163.7,179.1 164.9,176.1 169.0,176.5 170.2,179.1 170.0,181.4 175.3,186.5 175.5,187.8 173.6,188.9 175.5,191.4 171.0,193.9 172.0,195.5 177.3,192.1 181.2,192.9 183.3,192.7 184.0,191.8 186.1,192.3 185.2,193.9 183.3,194.6 182.9,196.7 179.7,197.0 178.3,199.0 171.7,201.6 168.8,204.1 162.4,207.2 160.5,209.9 156.3,211.8 155.8,217.4 158.4,220.6 163.2,221.8 165.6,220.8 168.0,221.1 169.5,219.1 170.5,219.5 171.2,222.9 170.9,224.7 169.5,225.4 167.1,224.9 165.6,225.9 162.0,226.1 161.7,227.6 163.3,229.2 160.8,230.4 161.6,231.5 164.7,232.1 165.3,234.9 163.7,236.6 161.0,235.3 161.2,238.4 162.8,241.1 162.1,242.5 160.7,242.8 158.0,240.0 156.7,241.1 152.4,240.5 148.9,241.4 149.0,243.3 147.6,243.7 145.8,246.7 143.3,247.3 141.5,249.4 137.6,246.4 138.6,244.4 141.7,245.5 144.0,243.9 142.5,242.3 143.6,240.5 142.1,237.8 143.2,236.7 145.1,236.9 145.5,235.1 143.1,231.2 140.1,232.6 132.7,231.4 135.6,226.5 132.9,226.2 131.5,227.5 131.6,229.1 130.2,229.7 127.9,228.2 126.6,228.7 127.2,230.5 129.2,231.1 129.4,232.4 127.6,233.5 126.2,231.6 125.9,234.3 124.4,236.2 127.1,237.3 125.3,240.5 128.0,241.1 127.5,241.8 129.1,244.2 127.9,247.2 128.2,250.9 126.9,253.0 122.2,255.3 121.4,257.1 125.0,258.9 121.0,261.4 119.0,260.9 117.8,261.8 116.6,259.6 114.5,259.7 114.7,258.1 111.6,256.1 110.4,256.9 109.4,255.2 105.8,254.8 106.3,251.7 104.9,251.1 104.1,252.0 101.4,248.2 102.0,244.1 99.2,244.9 96.2,241.4 97.6,238.5 96.3,237.8 96.5,235.9 95.0,236.2 94.3,238.4 90.3,238.3 89.5,236.5 86.7,235.9 86.4,237.4 83.5,233.5 80.6,233.7 78.7,232.1 71.8,233.4 68.7,232.7 65.4,233.8 62.4,232.7 59.4,228.0 58.5,224.2 54.7,219.7 54.8,214.7 47.8,214.0 44.9,210.0 44.6,207.4 46.2,204.4 46.2,198.9 44.2,198.1 39.6,198.1 34.7,195.5 34.3,194.4Z","s":"Rajasthan","k":9},{"d":"M161.5,162.9 163.6,160.3 163.1,158.5 167.9,157.5 170.1,163.5 167.1,165.6 165.8,163.7 164.2,163.1 162.1,163.8 161.5,162.9Z","s":"Delhi","k":1},{"d":"M120.6,141.4 122.0,139.2 121.4,137.9 123.5,138.4 126.3,137.0 129.5,139.2 132.9,139.7 133.7,141.3 132.5,142.8 134.8,144.8 135.5,142.3 137.5,140.3 139.6,141.5 143.0,140.0 145.9,141.7 147.7,141.4 150.5,139.7 149.8,138.2 151.2,135.2 153.9,134.2 156.8,135.0 157.9,134.2 156.5,132.5 159.1,131.0 159.8,129.1 162.6,129.2 162.8,125.9 161.1,124.6 161.5,121.8 160.3,120.6 162.7,120.6 164.5,123.4 167.0,124.5 166.2,126.7 167.7,128.1 173.2,128.9 174.1,130.0 174.2,131.3 168.0,137.9 166.2,141.3 166.6,151.9 167.9,157.5 163.1,158.5 163.6,160.3 161.5,162.9 162.1,163.8 164.2,163.1 165.8,163.7 167.1,165.6 170.1,163.5 172.8,166.2 172.3,171.3 173.3,174.2 169.0,176.5 164.9,176.1 163.7,179.1 162.3,177.7 163.6,170.4 161.6,168.9 158.7,171.3 158.4,172.6 156.1,173.3 156.2,172.3 152.3,169.7 153.1,170.6 152.3,172.6 151.3,171.7 149.6,172.9 150.7,175.9 149.9,176.5 146.3,175.5 145.7,174.2 146.4,174.1 147.8,168.9 139.3,161.8 137.8,156.2 138.7,155.4 136.3,153.7 136.6,150.2 131.0,150.7 127.0,147.6 122.7,148.3 122.9,141.3 120.6,141.4Z","s":"Haryana","k":1},{"d":"M354.8,186.9 354.9,182.3 357.6,176.7 357.7,173.9 364.8,171.1 367.2,171.5 369.5,175.4 368.8,178.8 367.4,180.7 367.9,183.4 370.0,185.1 369.8,186.0 368.0,186.4 366.6,188.4 363.3,187.7 361.5,189.6 359.0,188.5 356.8,188.9 354.8,186.9Z","s":"Sikkim","k":16},{"d":"M273.8,223.6 282.4,219.1 287.5,213.7 288.6,214.8 290.6,214.9 290.9,213.5 294.7,214.6 295.8,212.6 286.0,207.1 286.5,204.9 288.1,204.1 287.8,202.1 283.5,200.8 283.6,199.8 287.0,197.5 292.3,197.5 289.5,194.4 286.1,192.9 285.9,190.1 284.4,189.4 284.9,187.7 282.7,184.8 282.1,183.2 285.3,183.0 286.7,181.6 289.5,182.7 289.9,183.8 295.8,184.8 297.0,186.9 296.1,190.0 301.7,191.6 302.8,193.1 305.6,193.2 305.4,194.5 306.7,195.3 313.4,193.5 314.9,194.3 314.8,196.7 317.2,198.6 320.1,196.9 329.0,199.2 332.1,201.2 337.6,198.8 339.7,201.6 344.9,200.9 348.3,202.0 351.5,201.0 354.7,201.8 356.1,199.0 358.3,200.6 359.0,202.9 351.6,208.2 351.1,210.0 353.6,213.8 355.0,214.3 354.5,216.1 355.3,218.2 353.5,217.2 350.1,219.4 351.5,221.5 351.0,222.5 346.4,220.9 345.1,223.4 342.5,222.9 342.0,225.3 339.4,226.5 339.6,229.0 337.8,233.6 336.1,233.5 335.4,235.0 332.6,233.8 330.9,234.6 330.2,233.9 328.2,235.7 327.4,238.2 324.4,236.5 324.8,234.8 321.9,234.0 320.5,230.8 318.4,231.6 315.1,230.1 314.0,234.2 311.7,235.3 308.8,234.9 303.9,238.2 302.8,237.4 300.7,238.2 300.4,236.5 298.9,235.3 293.6,239.7 291.0,237.8 290.7,236.1 286.7,235.3 285.2,233.3 282.8,235.3 276.5,235.4 276.9,233.3 276.2,231.6 274.6,230.8 273.8,223.6Z","s":"Bihar","k":17},{"d":"M273.5,243.1 274.8,240.1 274.7,235.9 282.8,235.3 285.2,233.3 286.7,235.3 290.7,236.1 291.0,237.8 293.6,239.7 298.9,235.3 300.4,236.5 300.7,238.2 302.8,237.4 303.9,238.2 308.8,234.9 311.7,235.3 314.0,234.2 315.1,230.1 318.4,231.6 320.5,230.8 321.9,234.0 324.8,234.8 324.4,236.5 327.4,238.2 328.2,235.7 330.2,233.9 330.9,234.6 332.6,233.8 335.4,235.0 336.1,233.5 337.8,233.6 339.6,229.0 339.4,226.5 342.0,225.3 342.5,222.9 345.1,223.4 346.4,220.9 350.3,222.4 350.6,225.3 353.4,227.4 351.4,231.5 352.6,231.9 352.2,234.7 350.6,234.4 350.7,238.0 349.1,240.2 347.9,240.3 347.8,241.9 344.5,245.2 340.9,244.4 342.0,246.7 340.9,247.5 338.4,248.3 335.4,247.0 333.4,247.9 333.4,250.3 328.0,251.4 325.0,255.5 322.7,254.4 322.3,252.8 317.6,254.2 317.6,256.6 316.5,258.1 317.6,259.9 320.4,260.3 323.8,263.0 328.3,263.0 327.1,264.2 326.8,266.7 330.7,269.1 331.0,270.5 332.8,270.5 333.4,272.1 332.8,273.2 334.2,273.7 332.2,277.0 328.2,274.7 325.8,274.6 324.5,272.8 321.7,272.1 320.8,270.9 319.0,272.2 320.1,274.9 319.2,276.4 320.2,277.5 317.8,281.2 315.9,281.2 315.3,279.6 309.2,278.0 306.4,280.7 302.8,278.7 303.5,272.1 298.0,273.3 294.3,273.2 292.5,274.6 290.1,274.7 285.3,271.4 286.5,269.4 289.2,268.4 291.9,264.2 291.5,263.3 288.1,263.2 286.2,260.8 286.3,256.9 284.4,255.9 285.3,251.5 284.0,252.7 281.2,251.9 280.0,248.1 277.6,247.4 275.2,243.3 273.5,243.1Z","s":"Jharkhand","k":17},{"d":"M86.9,27.5 88.0,24.1 91.2,23.2 93.0,21.8 92.9,20.8 94.9,20.6 97.2,16.4 102.6,15.4 107.1,16.5 109.9,14.6 107.5,13.8 106.9,12.4 110.2,12.7 113.2,14.3 115.2,12.6 116.8,12.9 124.5,9.4 125.0,10.4 126.8,10.4 128.2,12.5 129.9,11.2 131.2,11.8 133.2,10.2 135.5,9.9 137.7,14.2 140.2,15.1 142.5,18.2 148.2,20.3 151.2,22.6 152.9,22.3 155.1,25.0 157.9,25.5 160.7,28.0 159.3,29.7 160.9,31.6 163.0,32.7 166.1,32.5 167.0,33.6 171.6,35.0 171.6,37.5 174.7,38.4 178.2,37.6 179.7,38.4 180.8,36.5 182.1,36.3 183.8,37.1 186.1,33.8 188.7,32.7 190.4,33.1 192.9,31.4 198.0,30.8 200.9,31.8 202.4,29.2 205.2,28.9 205.9,30.7 213.7,32.7 215.9,31.7 217.8,34.6 221.0,35.9 221.6,38.4 219.1,43.8 217.1,52.0 213.5,52.4 212.1,53.5 212.4,56.1 207.4,56.3 208.9,59.7 204.8,64.2 199.0,63.9 197.0,65.3 200.5,71.7 197.2,72.5 198.5,76.8 206.5,78.2 205.2,81.3 205.9,83.5 209.5,87.5 206.4,91.3 204.2,90.2 201.0,92.2 200.6,93.9 198.3,94.7 196.2,92.9 194.5,89.1 188.3,91.4 186.8,90.5 188.4,89.7 188.1,87.2 181.7,89.7 176.9,83.4 172.2,85.4 171.1,84.9 170.0,86.1 166.7,83.2 163.0,82.3 155.5,73.5 152.2,72.5 151.4,69.5 147.2,64.9 144.5,65.2 141.4,61.9 136.7,59.7 135.1,57.0 135.7,55.3 133.7,53.5 124.9,52.7 122.0,51.0 117.8,50.7 122.1,49.1 122.4,46.6 120.7,44.8 116.7,46.2 108.8,42.4 107.6,42.9 107.1,40.4 108.7,38.5 108.6,37.4 102.0,36.7 97.4,33.9 97.7,31.7 96.6,30.9 89.7,31.8 87.0,30.3 88.0,28.3 86.9,27.5Z","s":"Ladakh","k":22},{"d":"M101.8,58.1 102.7,54.5 105.7,54.3 108.0,50.7 111.7,49.7 113.6,47.9 113.4,46.0 114.8,45.1 116.7,46.2 120.7,44.8 122.4,46.6 122.1,49.1 117.9,50.7 122.0,51.0 125.0,52.7 133.7,53.5 135.7,55.3 135.1,57.0 136.7,59.7 141.4,61.9 144.5,65.2 147.2,64.9 151.4,69.5 152.2,72.5 155.5,73.5 160.2,78.3 159.8,79.6 153.9,79.5 146.1,85.1 144.3,84.1 143.4,84.9 145.5,87.4 145.4,89.4 141.4,93.8 138.4,95.3 131.4,92.5 128.6,92.8 127.6,91.5 124.1,92.0 123.7,86.7 118.9,87.2 111.6,83.1 105.8,81.2 106.4,79.1 104.8,76.7 105.7,72.5 104.7,71.7 105.2,66.9 104.0,65.1 103.5,60.9 101.8,58.1Z","s":"Jammu and Kashmir","k":22},{"d":"M139.9,99.4 141.0,98.4 140.6,96.3 145.6,93.7 144.0,91.6 145.5,87.4 143.4,84.9 144.3,84.1 146.1,85.1 153.9,79.5 159.8,79.6 160.2,78.3 163.0,82.3 166.7,83.2 170.0,86.1 171.1,84.9 172.2,85.4 176.9,83.4 181.7,89.7 188.1,87.2 188.4,89.7 186.8,90.5 190.6,93.4 189.7,95.8 191.9,97.0 191.6,98.1 194.9,101.0 193.6,104.9 196.0,107.9 194.1,109.2 195.2,110.9 194.4,112.3 198.8,116.9 196.7,117.1 195.4,115.3 189.8,115.3 187.8,113.7 180.8,115.7 179.1,116.9 178.0,121.5 176.3,123.1 178.2,127.7 174.1,130.0 173.2,128.9 171.2,129.2 166.2,126.7 167.0,124.5 164.5,123.4 162.7,120.6 161.9,121.1 157.6,118.9 158.0,115.1 157.0,113.9 155.4,114.0 153.6,111.4 151.8,113.3 150.3,113.4 145.3,101.7 139.9,99.4Z","s":"Himachal Pradesh","k":18},{"d":"M110.2,130.4 118.6,120.8 124.5,117.5 124.2,116.5 121.1,116.5 121.8,112.3 123.5,110.6 121.0,105.5 122.0,105.2 122.2,103.7 128.1,100.0 132.6,99.6 136.1,97.5 135.5,94.6 138.4,95.3 144.0,91.6 145.7,93.7 140.6,96.3 141.0,98.4 139.9,99.3 145.3,101.7 150.3,113.4 151.8,113.3 153.6,111.4 155.4,114.0 157.0,113.9 158.0,115.1 157.6,118.9 161.5,121.8 161.3,123.3 159.1,123.1 159.6,124.4 162.8,125.9 162.6,129.2 159.8,129.1 159.1,131.0 156.6,132.5 157.9,134.2 156.8,135.0 153.9,134.2 151.2,135.2 149.8,138.2 150.5,139.7 145.9,141.7 143.0,140.0 139.6,141.5 137.5,140.3 135.5,142.3 134.8,144.8 132.5,142.8 133.7,141.3 132.9,139.7 129.5,139.2 126.3,137.0 123.5,138.4 110.5,137.3 111.9,134.7 111.6,132.0 110.2,130.4Z","s":"Punjab","k":22},{"d":"M174.1,129.6 178.2,127.7 176.3,123.1 178.0,121.5 179.1,116.9 187.8,113.7 189.8,115.3 195.4,115.3 196.7,117.1 198.8,116.9 196.6,113.7 199.9,110.6 202.7,112.8 202.5,114.2 204.2,116.4 209.1,120.0 213.6,119.3 217.7,122.6 218.9,122.3 220.3,123.4 219.6,126.3 225.3,128.8 226.4,128.4 234.0,133.1 232.0,133.7 227.6,137.6 226.3,137.6 225.5,139.6 222.3,141.5 223.0,144.1 220.1,146.9 221.5,149.4 218.4,153.0 216.5,159.4 215.2,159.9 212.8,156.9 208.8,157.6 203.1,155.0 199.3,151.8 197.4,152.7 194.5,150.1 197.4,147.0 192.1,144.8 190.2,141.8 187.2,140.5 181.7,144.4 180.1,142.0 178.3,142.7 176.5,138.9 178.0,135.1 180.7,132.5 174.1,129.6Z","s":"Uttarakhand","k":18}];
+const DCDIST=[18, 46, 46, 23, 3, 19, 23, 17, 21, 26, 52, 28, 20, 17, 15, 24, 129, 73, 30, 16, 10, 37, 52, 15];
+const ST_PATHS=["M433.6,280.7 433.7,278.7 432.1,267.6 431.0,265.1 429.7,264.0 430.0,261.9 429.2,258.6 430.2,258.1 429.5,257.1 428.0,251.3 427.7,248.2 428.9,246.4 428.6,243.9 429.0,241.6 428.4,240.5 430.6,240.4 430.8,242.1 432.5,241.7 432.8,240.4 433.8,240.3 434.1,238.9 435.2,238.5 436.4,235.6 437.1,237.3 438.7,237.9 440.7,237.5 440.9,240.7 440.1,242.8 444.1,244.0 447.4,246.2 447.9,253.4 447.3,253.9 447.5,255.9 446.7,256.9 447.3,258.9 446.7,261.6 445.7,262.8 443.9,261.9 442.7,262.8 443.0,264.2 442.2,266.7 442.1,268.2 443.0,270.4 442.8,272.4 443.8,273.3 444.0,275.9 443.3,277.7 441.4,277.3 440.5,279.9 439.5,280.6 435.4,278.2 435.1,280.2 433.6,280.7Z","M168.6,523.9 168.8,522.6 167.1,519.6 168.5,517.2 167.5,516.3 166.7,514.8 168.8,512.2 169.0,509.6 171.1,505.5 169.6,504.1 168.8,504.7 167.0,504.0 168.4,500.6 167.8,499.2 168.7,496.5 169.1,492.8 167.2,490.5 165.7,491.3 165.0,492.3 163.8,493.0 162.3,492.3 161.2,490.9 160.9,489.4 161.3,486.2 162.5,482.9 161.2,481.3 158.2,480.1 159.9,477.5 158.8,476.0 159.1,474.7 157.7,475.5 154.5,475.3 155.9,474.1 156.3,472.5 154.8,472.0 150.9,469.5 153.4,468.1 154.1,466.9 155.7,466.3 156.5,467.8 159.9,467.8 161.5,468.3 161.3,467.2 162.5,464.7 164.3,464.3 166.0,465.0 169.2,464.4 171.5,465.1 172.7,462.0 175.8,461.8 176.4,460.3 177.5,458.9 177.0,458.2 174.7,457.3 172.8,457.4 172.3,456.6 173.6,455.7 174.7,454.4 175.1,452.2 174.3,451.7 174.5,448.9 176.9,448.9 177.8,447.5 178.5,445.4 180.2,444.9 181.0,445.9 182.4,445.6 183.7,446.9 185.4,447.3 186.6,449.0 188.5,449.7 191.6,446.9 192.1,443.1 194.4,442.0 196.8,441.2 198.6,441.4 201.5,442.6 202.7,441.1 202.6,440.1 203.6,440.7 206.2,439.6 205.7,436.9 208.0,436.9 207.9,438.0 210.5,437.6 210.8,439.0 212.4,438.6 212.7,437.2 215.0,436.4 216.6,433.3 217.3,434.2 219.7,434.1 220.6,432.8 221.6,434.9 221.9,438.0 221.1,440.4 220.3,445.5 220.3,446.9 218.3,453.6 216.1,456.4 214.0,459.8 213.5,460.1 213.2,461.8 212.2,461.7 210.5,463.1 212.6,463.8 211.8,467.7 211.9,469.6 212.7,471.3 213.5,475.8 213.4,479.2 211.6,479.0 211.2,480.2 212.8,481.1 213.3,482.1 213.7,490.5 213.5,491.9 211.9,492.1 205.4,491.3 203.3,492.8 202.6,494.5 203.0,496.1 200.8,499.1 200.7,499.6 198.3,502.6 197.5,504.3 196.9,506.5 198.4,508.5 199.8,509.6 201.4,509.9 204.5,509.4 203.9,510.6 202.2,510.0 196.5,510.3 191.4,512.6 188.7,512.9 188.0,513.3 185.3,515.4 184.4,517.1 184.2,518.5 184.8,519.5 183.8,520.7 183.9,524.0 182.4,526.2 178.7,528.5 177.8,530.1 174.3,530.5 173.7,531.6 171.8,531.3 168.1,529.7 165.8,527.7 168.6,523.9Z","M155.3,295.5 155.1,296.2 153.5,297.5 149.7,297.5 149.6,294.3 148.5,292.2 140.1,291.9 136.2,292.1 133.2,291.5 131.4,290.6 130.5,288.7 127.2,287.5 125.7,287.8 122.4,286.9 121.0,285.8 121.4,282.5 120.1,281.6 119.8,280.4 117.2,282.1 114.8,281.8 113.9,280.6 114.4,279.1 114.4,277.1 113.2,275.5 113.5,274.5 115.6,275.1 116.0,273.0 114.4,273.3 113.3,271.0 114.9,271.5 116.8,269.3 118.8,269.5 119.2,267.7 120.3,266.2 120.2,264.6 119.1,264.8 117.8,261.8 119.0,260.9 121.0,261.4 125.0,258.9 121.4,257.1 122.2,255.3 125.6,253.1 126.9,253.0 128.2,250.9 128.5,249.1 127.9,247.2 129.1,244.2 127.5,241.8 128.0,241.1 127.3,240.5 125.3,240.5 125.8,238.8 127.1,237.3 126.4,236.4 124.3,236.2 125.9,234.3 125.6,233.0 126.2,231.6 127.6,233.5 129.4,232.4 129.2,231.1 127.2,230.5 126.6,228.7 127.9,228.1 128.9,229.4 130.2,229.7 131.6,229.1 131.5,227.5 132.9,226.2 135.6,226.5 135.4,227.7 132.7,231.4 137.4,232.6 139.1,232.2 140.1,232.6 143.1,231.2 143.8,232.9 145.5,235.1 145.1,236.9 143.2,236.7 142.1,237.8 143.6,240.5 142.5,242.3 144.0,243.9 141.7,245.5 138.6,244.4 137.6,246.4 139.3,247.5 139.6,248.6 141.5,249.4 143.3,247.3 145.8,246.7 147.6,243.7 149.0,243.3 148.9,241.4 152.4,240.5 155.6,241.2 156.7,241.1 158.0,240.0 158.5,241.4 160.7,242.8 162.1,242.5 162.8,241.1 161.7,240.0 161.2,238.4 161.4,237.0 161.0,235.3 161.7,235.0 163.7,236.6 165.3,234.9 164.7,232.1 163.2,231.2 161.6,231.5 160.7,230.4 163.3,229.2 161.7,227.6 162.0,226.1 164.1,225.5 165.6,225.9 167.1,224.9 168.8,224.8 169.5,225.4 170.9,224.7 171.2,222.9 170.5,219.5 169.5,219.1 168.2,220.1 168.0,221.1 165.6,220.8 163.2,221.8 161.6,220.9 160.0,221.1 158.4,220.6 157.1,219.5 155.8,217.4 155.5,214.8 156.3,211.8 157.9,210.5 159.2,210.6 160.5,209.9 162.4,207.2 164.1,206.5 166.2,205.0 168.8,204.1 171.7,201.6 173.4,201.5 177.0,199.2 178.3,199.0 179.7,197.0 181.4,196.4 182.9,196.7 183.3,194.6 187.6,193.2 188.2,194.2 190.8,195.1 194.9,195.0 196.5,196.3 198.8,196.8 198.5,198.4 201.0,200.9 201.1,202.8 198.6,205.3 198.9,207.4 197.8,208.4 197.6,209.7 196.7,210.4 194.6,213.9 195.4,215.7 193.8,216.0 192.8,216.8 189.2,216.6 188.6,217.3 188.2,218.9 187.5,218.7 187.3,219.1 187.3,221.0 188.1,223.2 189.1,224.7 187.2,225.4 187.4,226.7 184.4,229.1 186.2,233.0 186.0,236.8 187.8,238.1 187.1,239.0 188.1,240.2 190.1,237.9 191.5,238.5 193.5,240.8 195.3,241.7 198.2,238.6 198.4,236.9 197.2,236.6 197.9,235.0 196.6,233.3 194.4,234.1 194.9,232.2 194.7,229.4 193.1,228.7 192.3,227.7 192.4,225.6 190.3,221.9 192.8,220.0 194.8,220.5 194.0,218.6 196.7,217.6 197.7,218.0 196.6,219.9 198.0,220.7 196.4,223.5 196.6,224.0 197.5,223.1 199.8,222.9 200.9,224.9 202.9,224.8 204.3,224.2 203.7,223.6 203.2,222.0 203.5,221.0 204.8,220.9 206.2,222.3 205.4,223.8 205.7,225.0 207.2,225.4 208.5,223.8 210.3,224.7 211.6,224.4 213.2,225.1 213.4,223.4 216.5,220.7 217.8,220.6 219.8,219.7 221.4,219.9 221.3,221.7 222.9,222.5 223.4,223.7 222.0,224.7 220.5,226.4 221.8,226.6 222.9,225.6 224.2,227.3 224.6,226.1 226.2,225.3 228.3,225.7 228.5,224.8 230.5,223.5 231.1,225.7 230.3,226.3 230.8,228.2 232.3,227.5 233.8,227.7 235.3,228.6 236.0,228.4 237.8,225.9 238.0,223.9 240.0,224.5 241.8,224.2 242.6,223.5 244.0,224.0 244.8,225.8 246.9,226.8 248.6,227.1 249.5,229.7 254.2,230.6 255.6,234.0 257.7,234.2 257.7,233.1 262.1,232.3 262.7,233.4 263.9,233.3 264.3,234.5 263.4,235.9 262.8,238.0 263.8,238.2 263.4,241.9 262.0,242.6 264.5,245.6 262.5,246.3 261.5,247.8 259.1,248.8 255.0,248.1 254.1,247.5 251.9,248.2 250.6,247.4 249.1,247.2 247.2,248.3 245.8,247.8 244.8,246.2 243.6,247.0 243.8,247.8 245.3,249.9 243.8,250.9 243.8,253.7 246.3,253.0 247.4,253.6 249.1,253.3 250.2,255.4 252.3,255.7 253.9,257.2 252.6,261.0 249.5,261.5 249.6,263.2 248.1,264.9 246.6,265.2 246.9,267.1 245.8,268.8 244.4,269.8 244.0,271.2 241.4,272.1 238.9,271.4 237.5,272.6 236.6,272.1 235.1,273.1 235.3,275.7 234.0,276.6 233.3,279.8 231.6,278.9 230.3,282.8 230.6,283.9 230.1,285.2 229.0,285.2 228.3,287.0 228.7,290.4 227.4,292.9 226.7,293.1 225.1,291.8 223.3,291.0 222.4,289.5 220.6,287.8 218.0,287.9 217.1,288.9 214.5,289.5 211.4,288.1 208.0,289.2 207.2,286.8 205.4,286.8 202.7,286.0 202.5,287.2 200.0,288.0 198.2,287.8 197.2,288.3 196.9,289.9 191.5,290.1 190.2,289.4 188.9,290.0 188.6,288.6 187.3,288.3 185.3,289.0 184.4,289.9 181.9,291.3 179.4,292.0 178.0,291.5 173.8,291.8 172.6,292.2 172.0,288.9 174.1,289.4 173.5,286.2 172.4,285.0 169.0,285.3 167.7,286.5 165.2,286.1 164.2,286.7 164.1,286.4 162.4,288.2 161.6,287.9 160.3,288.8 160.4,290.6 157.6,292.9 158.3,293.8 157.6,295.6 155.3,295.5Z","M117.7,379.0 118.0,380.8 117.8,383.1 118.7,384.2 120.6,384.4 120.6,386.3 118.7,387.5 120.3,388.2 119.0,390.7 118.3,393.2 116.4,393.5 115.9,392.9 114.4,394.0 114.3,395.2 112.1,395.9 111.2,393.6 106.9,393.8 105.2,390.6 103.8,390.1 101.4,382.4 101.1,377.9 100.3,375.8 100.5,374.4 99.8,372.9 100.1,371.2 100.0,368.9 98.9,366.2 99.2,365.1 98.2,364.0 98.1,360.4 95.8,353.3 94.5,350.7 94.5,348.6 95.5,348.2 93.5,346.5 93.2,344.6 93.9,343.2 92.5,340.3 92.7,338.5 91.6,336.6 92.2,334.0 91.3,332.6 91.5,329.4 90.2,325.2 90.1,323.3 89.0,319.9 89.2,318.1 90.4,317.4 90.0,315.6 92.8,312.8 94.4,313.2 94.4,314.6 97.4,315.4 99.3,314.7 100.2,313.1 102.2,313.2 102.0,310.0 103.1,308.0 103.2,306.4 102.0,305.7 103.2,303.9 105.6,305.7 106.3,306.7 107.9,306.7 109.5,305.7 110.1,303.8 110.9,303.9 111.3,301.8 110.4,300.1 109.7,298.9 109.0,298.7 106.5,296.1 109.1,295.8 109.2,294.0 111.3,293.5 111.6,291.8 113.1,290.9 115.9,290.6 117.8,289.9 117.1,288.8 115.1,288.7 112.0,289.5 109.4,289.5 109.1,287.3 110.2,286.0 109.3,285.2 109.1,283.8 114.8,281.8 117.2,282.1 119.8,280.4 120.1,281.6 121.4,282.5 121.0,285.8 122.4,286.9 125.7,287.8 127.2,287.5 130.5,288.7 131.4,290.6 133.2,291.5 136.2,292.1 140.1,291.9 148.5,292.2 149.6,294.3 149.7,297.5 153.5,297.5 155.1,296.2 155.3,295.5 157.6,295.6 158.3,293.8 157.6,292.9 160.4,290.6 160.3,288.8 161.6,287.9 162.4,288.2 164.1,286.4 164.2,286.7 165.2,286.1 167.7,286.5 169.0,285.3 172.4,285.0 173.5,286.2 174.1,289.4 172.0,288.9 172.6,292.2 173.8,291.8 178.0,291.5 179.4,292.0 181.9,291.3 184.4,289.9 185.3,289.0 187.3,288.3 188.6,288.6 188.9,290.0 190.2,289.4 191.5,290.1 196.9,289.9 197.2,288.3 198.2,287.8 200.0,288.0 202.5,287.2 202.7,286.0 205.4,286.8 207.2,286.8 208.0,289.2 211.4,288.1 214.5,289.5 217.1,288.9 218.0,287.9 220.6,287.8 222.4,289.5 223.3,291.0 225.1,291.8 226.7,293.1 227.4,292.9 226.6,294.8 224.0,295.8 223.5,297.2 224.0,300.2 225.4,300.1 226.0,304.8 224.9,306.5 226.6,306.4 226.2,309.8 226.8,310.9 222.8,312.5 223.4,314.5 224.7,314.3 225.4,315.1 225.1,318.0 224.0,320.0 225.4,320.2 225.7,321.2 227.6,322.3 228.3,323.8 231.4,325.6 230.7,328.4 228.9,329.7 226.5,329.3 225.9,327.8 224.3,328.8 222.7,331.5 221.7,332.3 221.6,333.7 220.6,336.0 222.0,337.7 220.7,339.1 220.7,340.0 218.0,340.7 216.3,339.0 214.5,338.1 215.3,337.3 214.9,334.3 213.5,333.1 214.7,332.1 215.6,327.7 215.0,326.4 213.6,325.7 212.6,324.5 211.5,323.9 206.8,325.9 205.0,324.5 203.0,324.2 202.0,326.6 200.3,325.3 197.6,325.0 197.9,323.1 196.3,322.5 195.9,321.2 191.3,320.2 188.9,320.3 188.0,319.1 186.7,318.5 187.7,320.9 187.3,322.1 186.2,322.5 186.7,324.0 186.7,326.2 185.0,327.2 184.4,330.6 182.1,330.0 180.4,328.8 179.0,329.4 179.0,331.7 177.9,333.6 178.7,336.6 180.5,337.7 178.6,338.4 177.7,340.6 176.7,340.9 176.9,342.9 174.4,343.0 174.2,344.9 173.2,346.2 173.6,347.7 172.2,348.2 171.2,347.5 171.3,345.9 169.6,345.0 168.7,345.3 168.4,346.3 165.2,350.2 163.3,349.5 162.8,350.8 163.3,352.2 162.5,352.8 162.7,354.4 160.2,355.1 159.6,354.7 160.5,356.1 159.2,356.9 158.7,358.7 158.2,358.0 155.9,357.2 155.3,359.0 152.6,360.2 152.6,362.5 153.3,363.1 153.5,365.3 150.8,364.3 145.7,365.1 145.0,363.7 143.6,364.2 140.5,362.3 139.5,364.0 140.0,365.4 140.9,366.0 140.4,367.8 141.2,368.9 141.1,371.3 138.7,371.5 137.6,371.1 134.4,371.7 134.1,373.4 132.7,373.8 131.1,371.8 127.9,373.4 128.2,375.0 127.0,375.0 124.3,376.1 123.2,378.4 122.1,379.0 121.7,377.5 117.7,379.0Z","M244.6,346.7 242.4,348.6 242.3,350.2 241.5,352.0 241.6,353.3 240.1,354.8 240.1,356.2 237.8,356.3 236.1,355.5 234.7,356.6 233.5,356.6 232.7,352.1 232.9,349.9 230.9,350.4 230.7,349.2 229.0,349.9 228.9,347.4 228.1,345.0 226.9,343.5 223.8,341.6 222.4,341.9 220.7,340.0 220.7,339.1 222.0,337.7 220.6,336.0 221.6,333.7 221.7,332.3 222.7,331.5 224.3,328.8 225.9,327.8 226.5,329.3 228.9,329.7 230.7,328.4 231.4,325.6 228.3,323.8 227.6,322.3 225.7,321.2 225.4,320.2 224.0,320.0 225.1,318.0 225.4,315.1 224.7,314.3 223.4,314.5 222.8,312.5 226.8,310.9 226.2,309.8 226.6,306.4 224.9,306.5 226.0,304.8 225.4,300.1 224.0,300.2 223.5,297.2 224.0,295.8 226.6,294.8 228.7,290.4 228.3,287.0 229.0,285.2 230.1,285.2 230.6,283.9 230.3,282.8 231.6,278.9 233.3,279.8 234.0,276.6 235.3,275.7 235.1,273.1 236.6,272.1 237.5,272.6 238.9,271.4 241.4,272.1 244.0,271.2 244.4,269.8 245.8,268.8 246.9,267.1 246.6,265.2 248.1,264.9 249.6,263.2 249.5,261.5 252.6,261.0 253.9,257.2 252.3,255.7 250.2,255.4 249.1,253.3 247.4,253.6 246.3,253.0 243.8,253.7 243.8,250.9 245.3,249.9 243.8,247.8 243.6,247.0 244.8,246.2 245.8,247.8 247.2,248.3 249.1,247.2 250.6,247.4 251.9,248.2 254.1,247.5 255.0,248.1 259.1,248.8 261.5,247.8 262.5,246.3 264.5,245.6 266.9,247.2 269.3,247.2 271.4,246.3 273.5,243.1 275.2,243.3 276.7,245.2 277.6,247.4 280.0,248.1 281.2,251.9 284.0,252.7 285.3,251.5 285.3,253.8 284.4,255.9 286.3,256.9 285.7,259.8 286.2,260.8 288.1,263.2 291.5,263.3 291.9,264.2 290.6,265.6 289.2,268.4 287.7,269.4 286.5,269.4 285.2,270.6 285.3,271.4 285.9,272.5 285.2,274.2 282.7,274.7 278.6,277.2 277.1,280.1 277.1,281.5 278.0,284.0 275.7,286.3 276.2,287.3 274.4,287.7 273.6,289.9 274.7,291.6 274.6,292.7 272.4,292.1 271.1,296.4 269.1,296.9 267.2,295.8 261.6,296.1 261.5,297.3 260.2,299.9 258.9,300.6 258.4,302.0 256.4,301.2 256.6,304.3 257.0,305.5 256.2,306.8 258.1,309.1 257.4,310.8 257.8,313.2 257.2,314.3 257.4,315.9 262.9,317.1 262.5,320.0 260.8,321.0 259.7,319.1 258.2,318.5 256.5,319.9 255.1,317.4 253.7,317.2 251.7,315.9 250.8,316.0 249.6,315.0 248.3,316.0 247.8,317.8 248.2,318.7 250.0,319.4 250.2,320.5 251.6,320.7 251.5,323.6 251.0,325.8 252.2,325.6 252.7,327.2 253.8,327.2 253.3,331.3 254.1,332.7 254.7,336.4 253.6,336.7 253.2,338.7 252.1,339.6 248.8,341.0 249.0,342.7 246.5,345.4 246.2,346.5 244.6,346.7Z","M57.5,304.5 50.9,301.6 44.8,296.8 38.1,289.3 32.3,284.0 32.8,282.9 32.0,283.8 29.7,281.7 25.3,276.7 24.8,275.3 26.0,273.0 28.7,274.6 29.0,277.1 31.8,275.3 34.4,274.8 35.3,274.1 36.6,274.2 40.8,272.6 42.8,271.1 45.4,270.9 47.0,269.0 47.0,268.0 48.2,267.1 50.1,264.6 51.0,265.7 52.9,262.4 55.1,260.8 55.6,259.5 51.9,259.7 50.5,259.0 48.6,259.0 46.0,261.7 44.6,264.3 41.9,264.8 39.2,266.0 37.1,266.6 33.1,266.3 28.2,265.2 19.6,259.8 17.8,257.9 18.1,256.5 15.6,255.3 15.8,254.1 14.3,254.0 14.0,252.5 11.1,252.1 10.4,250.7 11.6,250.4 12.3,247.1 14.5,245.5 21.7,245.4 21.8,239.6 23.3,240.6 25.0,239.4 26.0,240.9 27.5,240.0 29.3,240.6 31.3,239.8 34.4,240.1 36.2,239.6 38.6,241.8 43.6,241.8 45.1,239.6 53.1,237.3 53.1,240.4 54.7,240.9 57.1,240.9 58.3,239.6 60.2,238.3 61.3,238.5 62.2,237.0 60.4,236.9 60.2,234.2 62.4,232.7 65.4,233.8 66.5,233.0 67.0,233.6 68.7,232.7 71.0,232.7 71.8,233.4 74.1,232.7 76.3,232.8 78.7,232.1 79.2,232.2 80.6,233.7 81.7,233.4 83.7,233.6 83.8,234.7 84.7,235.6 85.4,235.6 85.2,236.2 86.4,237.4 86.3,236.6 87.1,235.5 87.5,236.1 89.5,236.5 90.3,238.3 94.3,238.4 95.0,236.2 96.5,235.9 96.3,237.8 97.6,238.5 96.2,241.4 97.2,242.6 98.7,243.5 99.2,244.9 100.5,243.9 102.0,244.1 102.2,246.2 101.5,246.6 101.4,248.2 103.2,250.2 104.1,252.0 104.9,251.1 106.4,251.7 105.8,254.8 108.1,254.7 109.4,255.2 110.4,256.9 111.6,256.0 112.0,256.8 114.7,258.1 114.5,259.7 116.6,259.6 119.1,264.8 120.2,264.6 120.3,266.2 119.2,267.7 118.8,269.5 116.8,269.3 114.9,271.5 113.3,271.0 114.4,273.3 116.0,273.0 115.6,275.1 113.5,274.5 113.2,275.5 114.4,277.1 114.4,279.1 113.9,280.6 114.8,281.8 109.1,283.8 109.3,285.2 110.2,286.0 109.1,287.3 109.4,289.5 112.0,289.5 115.1,288.7 117.1,288.8 117.8,289.9 115.9,290.6 113.1,290.9 111.6,291.8 111.3,293.5 109.2,294.0 109.1,295.8 106.5,296.1 109.0,298.7 109.7,298.9 110.4,300.1 111.3,301.8 110.9,303.9 110.1,303.8 109.5,305.7 107.9,306.7 106.3,306.7 105.6,305.7 103.2,303.9 102.0,305.7 103.2,306.4 103.1,308.0 102.0,310.0 102.2,313.2 100.2,313.1 99.3,314.7 98.7,314.7 97.3,313.3 97.9,311.7 95.8,311.1 93.9,311.6 94.4,313.2 92.8,312.8 91.1,314.5 90.5,312.5 91.2,310.9 92.1,310.3 93.1,308.6 93.4,306.5 92.5,303.4 90.2,298.0 90.7,297.8 88.5,297.1 88.8,295.1 88.1,293.2 89.0,292.7 89.7,290.6 90.4,290.4 89.9,289.4 88.3,288.4 89.8,287.3 87.1,285.7 88.5,284.3 86.5,281.9 87.5,277.6 88.9,277.0 90.7,277.8 92.7,277.0 94.1,275.6 89.1,275.9 86.6,275.1 85.7,276.3 84.2,275.2 83.6,277.7 81.3,282.9 81.9,284.1 81.1,285.4 83.1,287.7 81.8,290.7 79.6,293.5 79.7,295.3 74.7,297.5 72.2,299.0 69.3,299.9 68.0,301.3 66.0,301.7 61.3,303.7 59.1,303.6 57.5,304.5Z","M83.9,284.5 83.1,283.8 82.8,281.5 84.2,280.4 85.3,282.2 83.9,284.5Z","M256.6,349.8 256.0,352.1 254.8,353.1 253.4,352.0 251.0,351.7 250.1,352.7 247.2,353.7 245.6,355.2 243.9,356.1 240.1,356.2 240.1,354.8 241.6,353.3 241.5,352.0 242.3,350.2 242.4,348.6 244.6,346.7 246.2,346.5 246.5,345.4 249.0,342.7 248.8,341.0 252.1,339.6 253.2,338.7 253.6,336.7 254.7,336.4 254.1,332.7 253.3,331.3 253.8,327.2 252.7,327.2 252.2,325.6 251.0,325.8 251.5,323.6 251.6,320.7 250.2,320.5 250.0,319.4 248.2,318.7 247.8,317.8 248.3,316.0 249.6,315.0 250.8,316.0 251.7,315.9 253.7,317.2 255.1,317.4 256.5,319.9 258.2,318.5 259.7,319.1 260.8,321.0 262.5,320.0 262.9,317.1 257.4,315.9 257.2,314.3 257.8,313.2 257.4,310.8 258.1,309.1 256.2,306.8 257.0,305.5 256.6,304.3 256.4,301.2 258.4,302.0 258.9,300.6 260.2,299.9 261.5,297.3 261.6,296.1 267.2,295.8 269.1,296.9 271.1,296.4 272.4,292.1 274.6,292.7 274.7,291.6 273.6,289.9 274.4,287.7 276.2,287.3 275.7,286.3 278.0,284.0 277.1,281.5 277.1,280.1 278.6,277.2 282.7,274.7 285.2,274.2 285.9,272.5 285.3,271.4 287.0,272.3 288.4,274.1 290.1,274.7 292.5,274.6 294.3,273.2 298.0,273.3 299.0,272.7 301.6,272.9 303.5,272.1 303.7,276.3 302.8,278.7 305.4,279.6 306.4,280.7 307.1,279.4 309.2,278.0 314.1,279.9 315.3,279.6 315.9,281.2 317.8,281.2 319.8,278.8 320.2,277.5 319.1,276.4 320.1,274.9 319.9,273.2 319.0,272.2 320.8,270.9 321.7,272.1 324.5,272.8 325.8,274.6 327.0,275.2 328.2,274.7 329.2,275.5 332.2,277.0 334.1,279.1 336.3,279.4 337.4,280.2 336.9,282.5 338.6,283.4 338.7,282.3 341.1,281.5 341.2,283.5 341.8,284.4 344.5,285.1 345.2,287.8 343.9,289.1 340.7,289.3 339.4,289.7 336.0,292.5 334.4,295.1 334.3,297.2 336.5,301.4 336.3,302.7 334.5,302.8 333.5,303.7 334.5,303.0 337.3,303.0 337.9,304.0 333.2,307.3 332.3,308.6 333.0,310.9 328.8,313.6 326.0,317.2 323.5,318.7 314.0,321.5 308.4,324.3 302.0,329.2 299.1,332.1 298.3,333.5 297.2,332.8 295.8,333.4 295.3,334.5 293.9,334.0 292.4,335.8 292.6,336.3 290.6,338.7 288.9,338.5 286.6,339.3 285.7,338.2 283.2,338.2 281.5,334.6 280.7,335.0 280.8,336.5 279.2,333.1 278.3,333.2 276.1,334.3 275.7,335.7 273.8,334.6 273.3,335.4 274.9,337.2 271.3,339.4 270.1,338.8 267.8,342.0 268.5,343.1 268.1,344.7 269.1,345.7 267.2,346.4 265.9,346.1 264.4,344.8 263.9,346.8 260.6,347.9 261.0,346.3 258.9,343.4 256.7,345.3 257.1,346.3 255.9,349.6 256.6,349.8Z","M201.5,442.6 198.6,441.4 196.8,441.2 194.4,442.0 192.1,443.1 191.6,446.9 188.5,449.7 186.6,449.0 185.4,447.3 185.8,445.5 186.8,445.5 187.5,444.0 189.5,443.4 190.3,441.9 191.5,438.0 189.1,437.4 187.7,436.4 187.9,433.8 188.3,432.4 187.0,432.2 184.8,432.7 184.9,431.6 183.5,430.1 183.4,427.4 181.4,427.2 180.9,425.7 178.2,426.5 177.6,428.2 174.9,429.1 172.0,430.7 172.2,429.3 171.6,427.8 169.8,427.9 167.2,427.3 166.8,428.4 165.2,429.6 163.7,428.1 164.8,426.2 162.9,424.4 163.2,423.2 162.3,421.9 164.2,421.4 164.6,423.8 167.1,424.7 169.7,424.4 171.0,426.6 171.6,425.9 170.9,424.6 170.9,421.8 172.8,422.1 172.4,419.7 171.2,418.9 170.4,420.0 166.5,418.9 166.1,420.9 164.2,420.7 162.1,418.7 162.4,416.1 160.8,415.4 160.1,414.1 160.2,412.7 161.3,410.7 161.8,407.5 160.0,407.1 160.7,405.2 163.9,406.7 166.1,406.3 166.8,404.4 166.3,402.9 166.7,401.7 165.2,401.0 164.7,399.1 164.7,395.5 165.6,395.1 164.6,391.9 165.4,390.6 168.4,389.6 173.0,390.2 175.5,391.0 178.0,391.2 179.4,390.6 182.8,391.8 184.4,391.5 185.8,388.8 188.5,387.6 190.9,388.2 191.8,387.4 194.2,388.8 197.3,386.7 197.0,385.6 199.2,384.6 201.4,385.2 202.4,384.9 202.5,379.7 203.1,378.8 205.9,378.5 206.4,377.8 208.0,377.5 212.4,375.9 213.8,376.4 215.1,377.5 216.9,375.5 217.2,374.2 216.6,372.4 216.9,371.5 219.2,370.6 221.2,371.4 221.5,373.1 225.8,375.1 225.7,374.0 226.3,372.4 225.2,371.6 222.2,371.4 224.7,369.7 226.0,368.2 228.0,369.4 230.5,370.2 231.1,369.7 231.1,368.0 232.2,367.0 233.1,367.5 236.2,366.8 236.5,365.1 238.0,365.2 238.6,363.6 233.6,361.6 231.7,359.4 231.3,357.7 232.8,356.9 234.2,357.7 234.7,356.6 236.1,355.5 237.8,356.3 243.9,356.1 245.6,355.2 247.2,353.7 250.1,352.7 251.0,351.7 253.4,352.0 254.8,353.1 256.0,352.1 256.6,349.8 255.9,349.6 257.1,346.3 256.7,345.3 258.9,343.4 261.0,346.3 260.6,347.9 263.9,346.8 264.4,344.8 265.9,346.1 267.2,346.4 269.1,345.7 268.1,344.7 268.5,343.1 267.8,342.0 270.1,338.8 271.3,339.4 274.9,337.2 273.3,335.4 273.8,334.6 275.7,335.7 276.1,334.3 278.3,333.2 279.2,333.1 280.8,336.5 280.7,335.0 281.5,334.6 283.2,338.2 285.7,338.2 286.6,339.3 288.9,338.5 290.6,338.7 292.6,336.3 292.4,335.8 293.9,334.0 295.3,334.5 295.8,333.4 297.2,332.8 298.3,333.6 295.5,336.9 294.6,338.7 293.6,339.6 291.2,342.9 287.6,346.2 287.3,347.3 279.2,351.5 275.0,355.5 273.8,357.9 270.6,360.9 268.1,361.8 267.6,362.4 262.6,364.7 259.9,366.5 256.0,369.9 254.8,372.1 254.8,373.2 256.7,373.5 256.0,377.0 255.9,378.9 254.5,379.2 249.7,381.8 247.9,382.2 245.6,383.3 242.8,382.7 240.0,382.8 237.8,383.9 236.9,385.2 235.8,389.4 233.5,391.6 233.4,393.4 232.2,394.1 230.3,394.2 229.3,391.3 227.7,391.0 225.2,391.6 223.2,392.6 221.4,393.9 220.3,395.5 219.5,398.4 218.1,400.3 216.6,406.8 217.8,411.7 219.3,414.4 218.9,418.6 218.2,420.8 218.5,424.2 220.3,428.9 220.0,431.1 220.6,432.8 219.7,434.1 217.3,434.2 216.6,433.3 215.0,436.4 212.7,437.2 212.4,438.6 210.8,439.0 210.5,437.6 207.9,438.0 208.0,436.9 205.7,436.9 206.2,439.6 203.6,440.7 202.6,440.1 202.7,441.1 201.5,442.6Z","M146.9,462.2 144.6,461.8 143.3,459.9 140.6,458.3 139.5,458.1 137.9,455.7 136.7,455.7 136.9,454.3 135.9,453.5 136.8,452.0 134.4,451.5 131.5,448.7 129.3,447.7 127.3,447.3 126.5,445.7 124.7,437.3 123.9,431.5 122.4,426.3 121.2,425.2 119.1,417.4 118.4,415.8 116.9,413.7 116.8,412.0 114.3,410.8 113.8,408.7 115.8,408.3 117.4,406.2 117.0,405.2 117.8,403.6 116.8,402.6 117.9,401.8 117.9,400.3 117.1,399.9 116.6,398.1 117.1,397.5 116.4,394.9 114.3,395.2 114.4,394.0 115.9,392.9 116.4,393.5 118.3,393.2 119.0,390.7 120.3,388.2 118.7,387.5 120.6,386.3 120.6,384.4 118.7,384.2 117.8,383.1 118.0,380.8 117.7,379.0 121.7,377.5 122.1,379.0 123.2,378.4 124.3,376.1 127.0,375.0 128.2,375.0 127.9,373.4 131.1,371.8 132.7,373.8 134.1,373.4 134.4,371.7 137.6,371.1 138.7,371.5 141.1,371.3 141.2,368.9 140.4,367.8 140.9,366.0 140.0,365.4 139.5,364.0 140.5,362.3 143.6,364.2 145.0,363.7 145.7,365.1 150.8,364.3 153.5,365.3 153.3,363.1 152.6,362.5 152.6,360.2 155.3,359.0 155.9,357.2 158.2,358.0 158.7,358.7 159.2,356.9 160.5,356.1 159.6,354.7 160.2,355.1 162.7,354.4 162.5,352.8 163.3,352.2 162.8,350.8 163.3,349.5 165.2,350.2 168.4,346.3 168.7,345.3 169.6,345.0 171.3,345.9 171.2,347.5 172.2,348.2 173.6,347.7 174.5,348.0 173.8,349.4 174.5,351.3 173.6,351.9 175.5,353.5 174.2,354.6 173.4,356.9 171.9,358.4 171.8,360.4 176.0,361.7 173.0,363.2 172.5,364.5 170.7,366.9 170.4,368.1 172.1,369.0 172.7,370.2 172.1,373.0 172.3,374.7 171.5,376.0 171.9,377.8 171.3,379.6 168.3,380.4 169.1,381.6 171.3,382.3 172.6,382.0 174.4,382.8 172.8,384.9 173.0,390.2 168.4,389.6 165.4,390.6 164.6,391.9 165.6,395.1 164.7,395.5 164.7,399.1 165.2,401.0 166.7,401.7 166.3,402.9 166.8,404.4 166.1,406.3 163.9,406.7 160.7,405.2 160.0,407.1 161.8,407.5 161.3,410.7 160.2,412.7 160.1,414.1 160.8,415.4 162.4,416.1 162.1,418.7 164.2,420.7 166.1,420.9 166.5,418.9 170.4,420.0 171.2,418.9 172.4,419.7 172.8,422.1 170.9,421.8 170.9,424.6 171.6,425.9 171.0,426.6 169.7,424.4 167.1,424.7 164.6,423.8 164.2,421.4 162.3,421.9 163.2,423.2 162.9,424.4 164.8,426.2 163.7,428.1 165.2,429.6 166.8,428.4 167.2,427.3 169.8,427.9 171.6,427.8 172.2,429.3 172.0,430.7 174.9,429.1 177.6,428.2 178.2,426.5 180.9,425.7 181.4,427.2 183.4,427.4 183.5,430.1 184.9,431.6 184.8,432.7 187.0,432.2 188.3,432.4 187.9,433.8 187.7,436.4 189.1,437.4 191.5,438.0 190.3,441.9 189.5,443.4 187.5,444.0 186.8,445.5 185.8,445.5 185.4,447.3 183.7,446.9 182.4,445.6 181.0,445.9 180.2,444.9 178.5,445.4 177.8,447.5 176.9,448.9 174.5,448.9 174.3,451.7 175.1,452.2 174.7,454.4 173.6,455.7 172.3,456.6 172.8,457.4 174.7,457.3 177.0,458.2 177.5,458.9 176.4,460.3 175.8,461.8 172.7,462.0 171.5,465.1 169.2,464.4 166.0,465.0 164.3,464.3 162.5,464.7 161.3,467.2 161.5,468.3 159.9,467.8 156.5,467.8 155.7,466.3 154.1,466.9 154.0,465.3 152.3,465.4 150.4,463.5 148.8,463.5 148.8,461.3 146.9,462.2Z","M117.1,399.9 117.9,400.3 117.9,401.8 116.8,402.6 117.8,403.6 117.0,405.2 117.4,406.2 115.8,408.3 113.8,408.7 112.0,406.0 110.3,400.6 111.2,399.2 108.3,398.0 106.9,393.8 111.2,393.6 112.1,395.9 116.4,394.9 117.1,397.5 116.6,398.1 117.1,399.9Z","M162.4,492.4 163.8,493.0 165.0,492.3 165.7,491.3 167.2,490.5 169.1,492.8 168.7,496.5 167.8,499.2 168.4,500.6 167.0,504.0 168.8,504.7 169.6,504.1 171.1,505.5 169.0,509.6 168.8,512.2 166.7,514.8 167.5,516.3 168.5,517.2 167.1,519.6 168.8,522.6 168.6,523.9 165.8,527.7 163.4,525.4 158.6,519.0 156.3,516.7 155.1,512.8 152.9,508.0 152.4,506.3 151.7,500.8 149.7,493.7 150.5,493.5 149.6,493.7 148.6,490.1 145.3,482.7 143.8,476.8 141.6,471.3 140.2,470.4 139.1,466.3 136.2,463.5 135.7,463.5 133.9,460.8 133.0,460.8 127.3,447.3 129.3,447.7 131.5,448.7 134.4,451.5 136.8,452.0 135.9,453.5 136.9,454.3 136.7,455.7 137.9,455.7 139.5,458.1 140.6,458.3 143.3,459.9 144.6,461.8 146.9,462.2 148.8,461.3 148.8,463.5 150.4,463.5 152.3,465.4 154.0,465.3 154.1,466.9 153.4,468.1 150.9,469.5 154.8,472.0 156.3,472.5 155.9,474.1 154.5,475.3 157.7,475.5 159.1,474.7 158.8,476.0 159.9,477.5 158.2,480.1 161.2,481.3 162.5,482.9 161.3,486.2 160.9,489.4 161.2,490.9 162.4,492.4Z","M169.1,381.6 168.3,380.4 171.3,379.6 171.9,377.8 171.5,376.0 172.3,374.7 172.1,373.0 172.7,370.2 172.1,369.0 170.4,368.1 170.7,366.9 172.5,364.5 173.0,363.2 176.0,361.7 171.8,360.4 171.9,358.4 173.4,356.9 174.2,354.6 175.5,353.5 173.6,351.9 174.5,351.3 173.8,349.4 174.5,348.0 173.6,347.7 173.2,346.2 174.2,344.9 174.4,343.0 176.9,342.9 176.7,340.9 177.7,340.6 178.6,338.4 180.5,337.7 178.7,336.6 177.9,333.6 179.0,331.7 179.0,329.4 180.4,328.8 182.1,330.0 184.4,330.6 185.0,327.2 186.7,326.2 186.7,324.0 186.2,322.5 187.3,322.1 187.7,320.9 186.7,318.5 188.0,319.1 188.9,320.3 191.3,320.2 195.9,321.2 196.3,322.5 197.9,323.1 197.6,325.0 200.3,325.3 202.0,326.6 203.0,324.2 205.0,324.5 206.8,325.9 211.5,323.9 212.6,324.5 213.6,325.7 215.0,326.4 215.6,327.7 214.7,332.1 213.5,333.1 214.9,334.3 215.3,337.3 214.5,338.1 216.3,339.0 218.0,340.7 220.7,340.0 222.4,341.9 223.8,341.6 226.9,343.5 228.1,345.0 228.9,347.4 229.0,349.9 230.7,349.2 230.9,350.4 232.9,349.9 232.7,352.1 233.5,356.6 234.7,356.6 234.2,357.7 232.8,356.9 231.3,357.7 231.7,359.4 233.6,361.6 238.6,363.6 238.0,365.2 236.5,365.1 236.2,366.8 233.1,367.5 232.2,367.0 231.1,368.0 231.1,369.7 230.5,370.2 228.0,369.4 226.0,368.2 224.7,369.7 222.2,371.4 225.2,371.6 226.3,372.4 225.7,374.0 225.8,375.1 221.5,373.1 221.2,371.4 219.2,370.6 216.9,371.5 216.6,372.4 217.2,374.2 216.9,375.5 215.1,377.5 213.8,376.4 212.4,375.9 208.0,377.5 206.4,377.8 205.9,378.5 203.1,378.8 202.5,379.7 202.4,384.9 201.4,385.2 199.2,384.6 197.0,385.6 197.3,386.7 194.2,388.8 191.8,387.4 190.9,388.2 188.5,387.6 185.8,388.8 184.4,391.5 182.8,391.8 179.4,390.6 178.0,391.2 175.5,391.0 173.0,390.2 172.8,384.9 174.4,382.8 172.6,382.0 171.3,382.3 169.1,381.6Z","M356.3,286.8 354.7,286.5 355.9,283.7 357.0,284.1 357.1,285.6 356.3,286.8Z","M357.4,279.0 355.3,280.6 353.4,283.9 350.5,286.3 348.5,287.2 345.2,287.8 344.5,285.1 341.8,284.4 341.2,283.5 341.1,281.5 338.7,282.3 338.6,283.4 336.9,282.5 337.4,280.2 336.3,279.4 334.1,279.1 332.2,277.0 334.0,275.0 334.2,273.7 332.8,273.2 333.4,272.1 332.8,270.5 331.0,270.5 330.7,269.1 326.8,266.7 327.1,264.2 328.3,263.0 323.8,263.0 320.4,260.3 317.6,259.9 316.5,258.1 317.6,256.6 317.2,255.2 317.6,254.2 320.3,253.9 321.0,252.7 322.3,252.8 322.7,254.4 325.0,255.5 325.9,253.3 328.0,251.4 331.9,250.3 333.4,250.3 333.9,249.1 333.4,247.9 335.4,247.0 338.4,248.3 339.1,247.5 340.9,247.5 342.0,246.7 340.9,244.4 342.7,244.3 344.5,245.2 347.8,241.9 347.9,240.3 349.1,240.2 350.7,238.0 350.6,234.4 352.2,234.7 352.6,231.9 351.4,231.5 352.3,229.5 353.5,228.3 353.4,227.4 350.6,225.3 350.3,222.4 349.2,222.2 350.1,222.1 351.0,222.5 351.5,221.5 350.4,220.7 350.1,219.4 351.9,217.9 353.5,217.2 355.3,218.2 354.5,216.1 355.0,214.3 353.6,213.8 352.3,211.3 351.2,210.8 351.1,210.0 351.6,208.2 353.7,206.3 355.4,205.7 356.7,204.4 359.0,202.9 358.3,200.6 356.1,199.0 356.9,197.4 357.4,195.0 356.2,191.8 354.0,188.9 354.8,186.9 355.8,188.5 356.8,188.9 359.0,188.5 361.5,189.6 363.3,187.7 364.5,187.5 366.6,188.4 369.1,188.9 369.2,191.5 370.1,191.0 373.0,192.9 373.0,193.7 373.6,194.4 375.8,194.3 377.9,193.5 379.3,194.5 380.9,194.2 382.4,195.3 384.6,196.3 386.1,196.3 386.5,197.8 386.0,202.0 384.9,202.5 383.5,205.0 384.0,205.8 382.4,204.8 381.9,206.1 382.7,207.7 380.8,208.8 377.5,208.7 375.4,206.6 374.1,206.4 373.1,201.8 371.1,200.8 369.9,202.0 371.2,202.6 370.2,203.8 367.3,202.9 366.3,201.9 363.3,200.2 361.4,198.7 361.1,197.3 359.9,199.9 362.5,200.6 363.1,202.3 361.1,202.9 360.2,204.9 357.2,206.2 355.8,210.1 355.9,211.9 356.6,212.6 358.8,212.8 362.0,214.9 361.9,216.2 365.3,218.3 368.2,217.5 368.7,220.3 371.2,222.0 369.9,223.6 368.1,223.8 366.8,223.3 361.7,223.3 362.0,225.4 361.0,227.4 359.0,228.9 358.1,227.6 356.6,228.4 357.2,229.4 355.3,231.0 354.6,232.5 356.4,235.7 359.9,236.9 360.8,237.8 363.8,239.3 366.0,239.0 367.0,240.3 367.0,242.2 366.3,243.1 367.0,244.3 366.8,246.5 364.6,247.4 363.9,250.1 364.4,251.8 366.6,253.7 367.3,254.9 366.4,258.7 368.2,258.3 370.4,259.2 369.0,263.5 370.9,265.7 369.9,267.3 370.8,268.4 370.2,269.2 371.4,273.2 371.3,275.7 372.6,277.2 372.6,281.8 371.6,282.7 370.3,281.9 368.9,282.3 367.3,281.7 367.3,280.6 365.1,281.7 363.3,283.5 361.8,282.4 360.9,282.8 360.4,284.4 358.8,285.8 359.4,286.8 358.6,288.9 357.8,284.8 356.7,281.7 357.7,280.4 357.9,279.0 357.3,277.5 355.6,276.2 354.1,276.5 354.4,277.3 356.5,277.6 357.4,279.0Z","M367.6,283.3 368.1,286.9 367.0,287.0 366.1,285.4 366.5,282.6 367.6,283.3Z","M95.8,311.1 97.9,311.7 97.3,313.3 98.7,314.7 97.4,315.4 94.4,314.6 94.4,313.2 93.9,311.6 95.8,311.1Z","M213.3,482.1 212.8,481.1 211.2,480.2 211.6,479.0 213.4,479.2 213.3,482.1Z","M212.6,463.8 210.5,463.1 212.2,461.7 213.2,461.8 212.6,463.8Z","M434.9,190.3 433.0,191.6 431.0,191.6 426.6,192.8 425.2,192.8 425.1,190.7 423.8,189.7 423.7,187.9 424.5,185.9 424.2,183.7 423.5,182.1 422.2,182.6 417.3,182.2 415.7,180.3 415.7,179.5 416.8,178.2 416.9,176.4 420.2,176.3 421.2,177.9 423.0,177.0 424.2,177.2 426.0,175.8 427.7,175.3 428.6,176.8 433.0,176.1 434.8,174.7 435.9,173.3 434.7,171.7 435.1,170.6 437.1,169.2 438.7,169.2 441.0,167.4 444.4,166.7 443.7,165.1 445.3,163.8 446.4,161.3 449.0,160.5 451.3,161.0 455.1,160.1 457.2,160.0 457.8,157.7 460.5,155.7 461.0,154.2 462.8,152.2 464.0,152.1 465.3,150.8 467.5,150.7 467.8,149.8 469.5,149.0 471.5,150.8 472.9,151.6 479.5,152.9 479.7,154.0 482.9,154.2 484.4,151.0 485.2,151.0 487.2,149.5 490.3,147.8 491.6,148.0 493.9,146.6 495.4,148.3 496.6,150.7 499.2,150.3 498.3,151.8 496.1,152.4 495.0,154.0 496.6,155.9 498.3,154.3 499.9,154.2 501.3,155.4 501.6,157.0 502.9,158.6 502.5,159.9 500.5,160.5 500.9,161.5 498.0,163.7 498.8,164.2 497.8,166.0 501.1,165.4 502.4,164.6 503.8,164.6 505.8,166.3 507.8,166.0 509.5,167.3 511.2,166.3 512.6,167.6 513.5,167.6 516.0,168.9 515.3,170.1 515.3,171.8 516.3,172.8 516.1,174.5 514.0,174.7 512.3,176.2 510.2,177.4 508.0,179.8 507.2,179.5 508.5,181.7 508.0,182.7 509.0,183.6 511.2,187.0 512.5,188.3 510.7,189.2 509.4,188.1 507.2,187.5 507.6,186.2 506.1,184.6 502.8,184.3 501.1,185.5 497.7,185.6 493.9,186.9 492.7,187.6 491.4,190.0 488.9,190.6 488.0,192.7 486.9,192.6 485.6,194.2 483.7,194.2 482.5,196.3 480.3,197.2 479.1,196.6 478.6,193.6 479.1,192.3 478.5,190.2 479.6,190.3 481.5,188.9 481.6,189.1 482.8,188.5 483.4,186.5 484.3,186.1 486.0,186.7 487.9,186.1 489.9,186.0 491.7,185.3 492.6,184.2 491.3,183.0 490.3,183.0 490.2,181.1 488.6,179.7 488.5,177.7 491.8,173.6 489.2,173.4 485.6,173.7 484.0,175.0 481.6,175.8 480.4,175.2 477.4,176.2 472.5,177.8 465.8,180.9 464.1,180.5 461.9,179.5 461.5,180.0 462.4,181.5 461.6,181.8 457.7,185.0 454.5,188.2 454.9,189.7 452.0,191.4 448.7,192.0 447.4,191.6 440.9,192.4 438.6,190.9 434.9,190.3Z","M432.5,241.7 430.8,242.1 430.6,240.4 428.4,240.5 427.0,239.7 427.8,238.4 427.0,235.7 427.6,232.7 428.4,231.6 427.3,228.7 428.4,228.4 429.9,229.6 432.2,229.0 430.6,226.3 431.6,224.9 432.6,225.1 434.0,224.8 434.7,223.7 436.1,223.1 436.9,221.8 434.5,219.1 433.1,218.5 434.7,216.6 433.4,217.0 432.0,215.8 430.9,213.9 427.1,214.0 425.9,214.8 425.9,212.2 426.7,210.5 426.1,209.4 428.0,207.7 426.2,207.5 425.6,208.1 421.0,208.1 420.2,206.7 418.5,208.2 418.5,209.5 416.0,208.3 413.7,211.8 411.8,211.7 409.8,213.9 408.5,211.6 406.1,212.0 406.4,210.9 405.1,209.8 401.1,209.7 399.6,210.3 396.2,209.0 391.9,209.9 390.8,209.6 389.7,210.4 387.0,213.8 389.0,215.9 386.6,217.0 386.5,218.3 386.1,218.5 386.7,215.8 385.7,213.7 386.0,211.0 386.8,209.9 383.5,205.0 384.9,202.5 386.0,202.0 386.5,197.8 386.3,195.6 389.6,195.7 392.1,195.0 392.7,193.4 394.5,193.3 395.9,192.6 398.1,194.2 401.1,195.0 406.9,194.8 407.7,194.1 410.1,194.3 411.8,194.8 413.0,193.7 414.5,194.6 416.8,194.1 418.1,194.2 421.4,192.3 423.0,193.4 424.2,193.6 425.2,192.8 426.6,192.8 431.0,191.6 433.0,191.6 434.9,190.3 438.6,190.9 440.9,192.4 447.4,191.6 448.7,192.0 452.0,191.4 454.9,189.7 454.5,188.2 457.7,185.0 461.6,181.8 462.4,181.5 461.5,180.0 461.9,179.5 464.1,180.5 465.8,180.9 472.5,177.8 477.4,176.2 480.4,175.2 481.6,175.8 484.0,175.0 485.6,173.7 489.2,173.4 491.8,173.6 488.5,177.7 488.6,179.7 490.2,181.1 490.3,183.0 491.3,183.0 492.6,184.2 491.7,185.3 489.9,186.0 487.9,186.1 486.0,186.7 484.3,186.1 483.4,186.5 482.8,188.5 481.6,189.1 481.5,188.9 479.6,190.3 478.5,190.2 476.8,191.6 474.8,192.4 473.8,191.8 472.8,192.5 471.5,194.5 470.5,195.4 467.9,195.8 464.8,197.9 464.7,199.3 463.2,200.6 462.7,198.8 461.0,200.7 460.6,202.6 459.6,203.1 457.8,205.8 457.0,209.4 457.4,210.4 455.8,211.7 454.0,211.6 453.9,209.4 452.3,210.6 452.7,211.5 449.9,213.7 449.4,214.7 447.9,215.5 446.2,217.1 448.4,219.1 448.6,221.4 447.1,222.6 446.5,224.7 444.8,227.4 444.8,228.4 443.5,230.5 442.4,230.3 442.0,232.1 442.0,234.6 441.4,235.1 440.7,237.5 438.7,237.9 437.1,237.3 436.4,235.6 435.2,238.5 434.1,238.9 433.8,240.3 432.8,240.4 432.5,241.7Z","M447.9,215.5 449.4,214.7 449.9,213.7 452.7,211.5 452.3,210.6 453.9,209.4 454.0,211.6 455.8,211.7 457.4,210.4 457.0,209.4 457.8,205.8 459.6,203.1 460.6,202.6 461.0,200.7 462.7,198.8 463.2,200.6 464.7,199.3 464.8,197.9 467.9,195.8 470.5,195.4 471.5,194.5 472.8,192.5 473.8,191.8 474.8,192.4 476.8,191.6 478.5,190.2 479.1,192.3 478.6,193.6 479.1,196.6 476.1,200.8 477.2,202.6 477.1,206.9 478.3,207.6 477.3,209.1 475.3,210.8 475.8,213.5 474.0,214.9 471.8,218.0 469.5,218.9 467.4,217.8 467.3,216.4 466.2,216.0 465.0,217.2 463.4,217.8 461.4,217.9 461.1,217.0 459.7,217.5 457.9,216.7 453.7,217.2 454.4,218.5 452.1,221.3 451.0,223.3 449.2,222.5 448.6,221.4 448.4,219.1 446.2,217.1 447.9,215.5Z","M410.3,223.3 407.4,223.2 403.5,224.0 402.2,223.6 400.7,224.0 397.5,223.8 396.4,224.3 394.4,223.4 390.6,222.9 388.3,221.5 385.9,221.5 385.5,219.9 386.5,218.3 386.6,217.0 389.0,215.9 387.0,213.8 389.7,210.4 390.8,209.6 391.9,209.9 396.2,209.0 399.6,210.3 401.1,209.7 405.1,209.8 406.4,210.9 406.1,212.0 408.5,211.6 409.8,213.9 411.8,211.7 413.7,211.8 416.0,208.3 418.5,209.5 418.5,208.2 420.2,206.7 421.0,208.1 425.6,208.1 426.2,207.5 428.0,207.7 426.1,209.4 426.7,210.5 425.9,212.2 425.9,214.8 427.1,214.0 430.9,213.9 432.0,215.8 433.4,217.0 434.7,216.6 433.1,218.5 434.5,219.1 436.9,221.8 436.1,223.1 434.7,223.7 434.0,224.8 432.6,225.1 431.6,224.9 430.6,226.3 424.7,223.6 418.9,223.8 417.1,224.6 416.4,223.7 414.5,224.5 412.5,223.7 412.1,222.7 410.3,223.3Z","M449.3,245.9 447.7,243.6 447.1,243.3 444.9,244.5 440.1,242.8 440.9,240.7 440.7,237.5 441.4,235.1 442.0,234.6 442.0,232.1 442.4,230.3 443.5,230.5 444.8,228.4 444.8,227.4 446.5,224.7 447.1,222.6 448.6,221.4 449.2,222.5 451.0,223.3 452.1,221.3 454.4,218.5 453.7,217.2 457.9,216.7 459.7,217.5 461.1,217.0 461.4,217.9 463.4,217.8 465.0,217.2 466.2,216.0 467.3,216.4 467.4,217.8 469.5,218.9 467.7,223.0 469.1,224.8 470.5,224.8 470.7,226.2 469.7,228.9 468.7,229.8 468.7,231.3 467.2,232.1 467.0,233.3 464.3,236.0 464.8,237.0 462.8,240.7 461.9,244.2 460.7,246.2 460.5,247.6 458.1,246.2 456.0,245.7 454.5,246.2 453.3,244.8 451.3,244.7 449.3,245.9Z","M419.1,258.1 420.1,260.3 419.9,261.8 418.4,263.1 415.9,263.5 415.4,262.9 414.8,259.6 413.8,258.2 411.5,257.9 410.4,254.1 408.8,252.2 408.7,249.5 409.9,249.7 410.3,248.0 409.8,247.1 411.2,244.9 412.4,244.9 414.1,243.8 416.9,243.0 417.3,241.5 419.0,242.3 418.9,240.5 420.8,241.6 421.9,242.9 422.3,240.2 421.9,238.8 422.8,238.0 424.5,238.1 425.7,237.2 426.0,235.4 427.0,235.7 427.8,238.4 427.0,239.7 428.4,240.5 429.0,241.6 428.6,243.9 428.9,246.4 427.7,248.2 427.8,249.8 426.3,250.2 425.3,249.7 424.3,251.3 422.2,250.5 422.8,254.2 422.3,255.2 420.9,254.9 419.9,253.6 420.5,256.2 419.1,258.1Z","M430.7,487.1 429.9,484.9 429.8,482.9 432.2,480.8 433.4,482.8 433.6,484.7 432.4,487.6 430.7,487.1Z","M435.5,461.4 436.9,463.0 436.3,466.3 434.7,467.2 436.2,468.0 434.8,469.9 432.8,466.0 432.5,462.5 433.6,463.7 434.0,459.1 434.7,457.1 436.3,457.8 435.9,459.5 436.8,460.1 435.5,461.4Z","M454.4,555.2 452.9,551.1 452.1,550.6 451.7,548.7 452.2,547.6 455.0,546.7 455.5,547.3 456.3,551.9 455.7,554.7 454.4,555.2Z","M451.1,545.4 452.6,543.0 453.4,544.2 452.8,545.4 451.5,546.6 451.1,545.4Z","M437.3,455.3 437.6,455.5 438.3,455.5 438.0,458.1 436.5,457.7 436.0,456.5 437.3,455.3Z","M435.7,455.6 435.3,455.0 436.1,447.9 435.9,445.9 437.0,445.4 436.9,442.6 437.4,440.9 437.8,435.9 438.3,434.5 439.4,434.0 440.3,432.6 441.3,433.4 441.1,436.8 441.6,438.0 441.1,439.7 441.1,441.5 439.8,442.7 439.0,442.0 438.1,444.7 439.2,445.0 440.0,447.6 439.8,449.7 440.1,451.2 438.3,455.0 437.6,455.5 437.2,455.3 435.7,455.6Z","M194.4,234.1 196.6,233.3 197.9,235.0 197.2,236.6 198.4,236.9 198.5,237.4 198.2,238.6 195.3,241.7 193.5,240.8 191.5,238.5 190.1,237.9 188.1,240.2 187.1,239.0 187.8,238.1 186.0,236.8 186.2,233.0 184.4,229.1 187.4,226.7 187.2,225.4 189.1,224.7 188.1,223.2 187.3,221.0 187.3,219.1 187.5,218.7 188.2,218.9 188.6,217.3 189.2,216.6 192.8,216.8 193.8,216.0 195.4,215.7 194.6,213.9 196.7,210.4 197.6,209.7 197.8,208.4 198.9,207.4 198.6,205.3 201.1,202.8 201.0,200.9 198.5,198.4 198.8,196.8 196.5,196.3 194.9,195.0 190.8,195.1 188.2,194.2 187.6,193.2 185.2,193.9 186.1,192.3 184.0,191.8 183.3,192.7 181.2,192.9 177.3,192.1 176.6,193.1 173.2,194.1 172.0,195.5 171.0,193.9 172.6,192.7 175.5,191.4 173.6,188.9 175.5,187.8 175.3,186.5 171.7,182.6 170.0,181.4 170.2,179.1 169.0,176.5 170.1,175.6 171.4,175.5 173.3,174.2 173.5,173.0 172.3,171.3 172.8,169.2 172.8,166.2 169.3,162.6 170.0,161.9 169.3,160.1 167.7,158.6 168.1,156.3 167.0,154.3 166.6,151.9 166.8,149.5 166.3,148.6 166.4,146.1 165.9,143.5 166.7,142.5 166.2,141.3 167.1,140.4 168.0,137.9 174.2,131.3 174.1,129.6 175.5,129.6 176.6,130.9 180.7,132.5 179.0,134.8 178.0,135.1 176.5,138.9 178.3,142.7 180.1,142.0 181.7,144.4 183.6,143.1 184.9,141.6 187.2,140.5 190.2,141.8 190.6,143.3 192.1,144.8 195.2,146.5 197.4,147.0 194.5,150.1 196.5,151.2 197.4,152.7 199.3,151.8 201.3,152.8 201.1,153.6 203.1,155.0 205.7,155.7 206.0,156.7 208.8,157.6 212.8,156.9 215.2,159.9 216.5,159.4 217.1,157.8 218.0,158.0 220.7,160.0 221.4,161.5 223.9,161.6 225.5,160.4 227.5,161.3 228.3,162.6 234.1,165.6 236.9,166.4 237.3,167.6 238.8,169.3 240.6,169.8 241.5,171.4 246.0,173.7 248.5,175.4 249.8,174.2 251.7,174.2 252.6,175.3 254.1,175.7 258.3,178.6 262.0,177.8 262.7,178.2 263.5,180.3 263.1,182.1 266.5,181.9 268.4,182.8 271.0,182.7 272.8,184.8 273.7,184.8 274.8,183.4 274.6,182.2 278.4,182.4 282.1,184.2 284.9,187.7 284.4,189.4 285.9,190.1 286.1,192.9 289.5,194.4 290.7,196.6 292.3,197.5 289.9,198.1 287.0,197.5 285.9,198.9 283.6,199.8 283.5,200.8 287.8,202.1 288.1,204.1 286.5,204.9 286.0,207.1 290.2,209.9 291.2,209.6 295.8,212.6 295.4,213.7 294.7,214.6 290.9,213.5 290.6,214.9 288.6,214.8 287.5,213.7 286.3,214.4 286.4,215.4 283.9,216.8 282.4,219.1 281.2,219.7 280.6,219.5 279.0,220.8 277.1,221.3 273.8,223.6 273.8,226.7 274.6,230.8 276.2,231.6 276.9,233.3 276.8,235.0 276.5,235.4 274.7,235.9 274.3,239.2 274.8,240.1 273.5,243.1 271.4,246.3 269.3,247.2 266.9,247.2 264.5,245.6 262.0,242.6 263.4,241.9 263.8,238.2 262.8,238.0 263.4,235.9 264.3,234.5 263.9,233.3 262.7,233.4 262.1,232.3 257.7,233.1 257.7,234.2 255.6,234.0 254.2,230.6 249.5,229.7 248.6,227.1 246.9,226.8 244.8,225.8 244.0,224.0 242.6,223.5 241.8,224.2 240.0,224.5 238.0,223.9 237.8,225.9 236.0,228.4 235.3,228.6 233.8,227.7 232.3,227.5 230.8,228.2 230.3,226.3 231.1,225.7 230.5,223.5 228.5,224.8 228.3,225.7 226.2,225.3 224.6,226.1 224.2,227.3 222.9,225.6 221.8,226.6 220.5,226.4 222.0,224.7 223.4,223.7 222.9,222.5 221.3,221.7 221.4,219.9 219.8,219.7 217.8,220.6 216.5,220.7 213.4,223.4 213.2,225.1 211.6,224.4 210.3,224.7 208.5,223.8 207.2,225.4 205.7,225.0 205.4,223.8 206.2,222.3 204.8,220.9 203.5,221.0 203.2,222.0 203.7,223.6 204.3,224.2 202.9,224.8 200.9,224.9 199.8,222.9 197.5,223.1 196.6,224.0 196.4,223.5 198.0,220.7 196.6,219.9 197.7,218.0 196.7,217.6 194.0,218.6 194.8,220.5 192.8,220.0 190.3,221.9 192.4,225.6 192.3,227.7 193.1,228.7 194.7,229.4 194.9,232.2 194.4,234.1Z","M121.0,261.4 119.0,260.9 117.8,261.8 116.6,259.6 114.5,259.7 114.7,258.1 112.0,256.8 111.6,256.0 110.4,256.9 109.4,255.2 108.1,254.7 105.8,254.8 106.4,251.7 104.9,251.1 104.1,252.0 103.2,250.2 101.4,248.2 101.5,246.6 102.2,246.2 102.0,244.1 100.5,243.9 99.2,244.9 98.7,243.5 97.2,242.6 96.2,241.4 97.6,238.5 96.3,237.8 96.5,235.9 95.0,236.2 94.3,238.4 90.3,238.3 89.5,236.5 86.7,235.9 86.4,237.4 83.8,234.7 83.5,233.5 80.6,233.7 78.7,232.1 76.3,232.8 74.1,232.7 71.8,233.4 71.0,232.7 68.7,232.7 67.0,233.6 65.4,233.8 62.4,232.7 59.4,228.0 58.5,224.2 56.2,221.9 54.7,219.7 54.8,214.7 53.7,214.0 52.4,214.6 49.9,214.8 47.8,214.0 44.9,210.0 44.6,207.4 45.6,206.1 46.2,204.4 46.2,198.9 44.2,198.1 41.2,198.4 39.6,198.1 38.4,197.1 34.7,195.5 34.3,194.4 34.8,190.7 36.1,187.6 40.8,183.6 42.1,181.9 43.6,180.7 45.5,176.4 49.6,172.6 52.0,172.2 53.4,172.7 54.9,174.3 55.0,176.0 56.3,177.9 58.9,178.1 64.0,175.8 67.1,175.1 72.0,175.0 75.6,173.7 75.7,174.4 76.5,170.7 77.7,169.1 81.3,165.8 82.9,160.8 84.7,158.8 89.2,156.8 90.4,155.8 94.1,154.4 95.1,152.1 96.5,150.6 99.9,144.6 101.9,137.8 105.3,136.5 108.9,135.6 111.7,133.4 111.9,134.7 110.6,135.9 110.5,137.3 121.4,137.9 122.0,139.2 120.7,140.2 120.6,141.4 122.9,141.3 122.2,144.7 123.0,145.3 122.4,146.6 122.7,148.3 125.9,148.3 127.0,147.6 128.5,148.3 128.9,149.8 130.4,149.7 131.0,150.7 135.5,149.8 136.6,150.2 136.3,153.7 137.2,153.8 138.7,155.4 137.8,156.2 138.6,157.8 139.3,161.8 140.3,162.0 141.1,163.5 145.0,165.8 147.8,168.9 146.8,170.6 147.0,171.8 146.4,174.1 145.7,174.2 146.3,175.5 148.2,175.7 149.9,176.5 150.7,175.9 149.8,174.6 149.6,172.9 151.3,171.7 152.3,172.6 153.1,170.6 152.2,169.7 156.2,172.3 156.1,173.3 158.4,172.6 158.7,171.3 160.6,170.2 161.6,168.9 163.6,170.4 162.9,173.0 163.1,175.7 162.3,177.7 163.7,179.1 164.9,176.1 169.0,176.5 170.2,179.1 170.0,181.4 171.7,182.6 175.3,186.5 175.5,187.8 173.6,188.9 175.5,191.4 172.6,192.7 171.0,193.9 172.0,195.5 173.2,194.1 176.6,193.1 177.3,192.1 181.2,192.9 183.3,192.7 184.0,191.8 186.1,192.3 185.2,193.9 183.3,194.6 182.9,196.7 181.4,196.4 179.7,197.0 178.3,199.0 177.0,199.2 173.4,201.5 171.7,201.6 168.8,204.1 166.2,205.0 164.1,206.5 162.4,207.2 160.5,209.9 159.2,210.6 157.9,210.5 156.3,211.8 155.5,214.8 155.8,217.4 157.1,219.5 158.4,220.6 160.0,221.1 161.6,220.9 163.2,221.8 165.6,220.8 168.0,221.1 168.2,220.1 169.5,219.1 170.5,219.5 171.2,222.9 170.9,224.7 169.5,225.4 168.8,224.8 167.1,224.9 165.6,225.9 164.1,225.5 162.0,226.1 161.7,227.6 163.3,229.2 160.7,230.4 161.6,231.5 163.2,231.2 164.7,232.1 165.3,234.9 163.7,236.6 161.7,235.0 161.0,235.3 161.4,237.0 161.2,238.4 161.7,240.0 162.8,241.1 162.1,242.5 160.7,242.8 158.5,241.4 158.0,240.0 156.7,241.1 155.6,241.2 152.4,240.5 148.9,241.4 149.0,243.3 147.6,243.7 145.8,246.7 143.3,247.3 141.5,249.4 139.6,248.6 139.3,247.5 137.6,246.4 138.6,244.4 141.7,245.5 144.0,243.9 142.5,242.3 143.6,240.5 142.1,237.8 143.2,236.7 145.1,236.9 145.5,235.1 143.8,232.9 143.1,231.2 140.1,232.6 139.1,232.2 137.4,232.6 132.7,231.4 135.4,227.7 135.6,226.5 132.9,226.2 131.5,227.5 131.6,229.1 130.2,229.7 128.9,229.4 127.9,228.1 126.6,228.7 127.2,230.5 129.2,231.1 129.4,232.4 127.6,233.5 126.2,231.6 125.6,233.0 125.9,234.3 124.3,236.2 126.4,236.4 127.1,237.3 125.8,238.8 125.3,240.5 127.3,240.5 128.0,241.1 127.5,241.8 129.1,244.2 127.9,247.2 128.5,249.1 128.2,250.9 126.9,253.0 125.6,253.1 122.2,255.3 121.4,257.1 125.0,258.9 121.0,261.4Z","M169.3,160.1 170.0,161.9 169.3,162.6 170.1,163.5 168.5,164.2 167.1,165.6 165.8,163.7 164.2,163.1 162.1,163.8 161.5,162.9 162.2,161.5 163.3,160.8 163.6,160.3 163.1,158.5 163.6,158.2 166.2,157.4 167.9,157.5 167.7,158.6 169.3,160.1Z","M147.8,168.9 145.0,165.8 141.1,163.5 140.3,162.0 139.3,161.8 138.6,157.8 137.8,156.2 138.7,155.4 137.2,153.8 136.3,153.7 136.6,150.2 135.5,149.8 131.0,150.7 130.4,149.7 128.9,149.8 128.5,148.3 127.0,147.6 125.9,148.3 122.7,148.3 122.4,146.6 123.0,145.3 122.2,144.7 122.9,141.3 120.6,141.4 120.7,140.2 122.0,139.2 121.4,137.9 123.5,138.4 124.5,137.3 126.3,137.0 128.3,137.7 129.5,139.2 131.6,139.9 132.9,139.7 133.7,141.3 132.5,142.8 134.8,144.8 135.5,142.3 137.5,140.3 139.6,141.5 142.0,140.2 143.0,140.0 145.9,141.7 147.7,141.4 148.5,140.3 150.5,139.7 149.8,138.2 151.2,135.2 153.9,134.2 154.9,135.1 156.8,135.0 157.9,134.2 156.5,132.5 159.1,131.0 159.8,129.1 162.6,129.2 162.4,128.8 162.8,125.9 161.1,124.6 161.5,121.8 160.3,120.6 161.9,121.1 162.7,120.6 164.5,123.4 167.0,124.5 167.1,126.0 166.2,126.7 167.7,128.1 171.2,129.2 173.2,128.9 174.1,130.0 174.2,131.3 168.0,137.9 167.1,140.4 166.2,141.3 166.7,142.5 165.9,143.5 166.4,146.1 166.3,148.6 166.8,149.5 166.6,151.9 167.0,154.3 168.1,156.3 167.9,157.5 166.2,157.4 163.1,158.5 163.6,160.3 163.3,160.8 162.2,161.5 161.5,162.9 162.1,163.8 164.2,163.1 165.8,163.7 167.1,165.6 168.5,164.2 170.1,163.5 172.8,166.2 172.8,169.2 172.3,171.3 173.5,173.0 173.3,174.2 171.4,175.5 170.1,175.6 169.0,176.5 164.9,176.1 163.7,179.1 162.3,177.7 163.1,175.7 162.9,173.0 163.6,170.4 161.6,168.9 160.6,170.2 158.7,171.3 158.4,172.6 156.1,173.3 156.2,172.3 152.2,169.7 153.1,170.6 152.3,172.6 151.3,171.7 149.6,172.9 149.8,174.6 150.7,175.9 149.9,176.5 148.2,175.7 146.3,175.5 145.7,174.2 146.4,174.1 147.0,171.8 146.8,170.6 147.8,168.9Z","M370.0,185.1 369.8,186.0 368.0,186.4 367.8,187.5 366.6,188.4 364.5,187.5 363.3,187.7 361.5,189.6 359.0,188.5 356.8,188.9 355.8,188.5 354.8,186.9 354.9,182.3 357.6,176.7 357.7,173.9 362.2,172.5 362.7,171.9 364.8,171.1 367.2,171.5 368.7,173.0 368.6,174.1 369.5,175.4 368.9,176.2 368.8,178.8 367.4,180.7 367.9,183.4 370.0,185.1Z","M302.8,237.4 300.7,238.2 300.4,236.5 298.9,235.3 295.2,237.7 293.6,239.7 293.0,238.8 291.0,237.8 290.7,236.1 289.5,235.4 286.7,235.3 285.2,233.3 284.0,235.0 282.8,235.3 280.2,235.8 276.5,235.4 276.8,235.0 276.9,233.3 276.2,231.6 274.6,230.8 273.8,226.7 273.8,223.6 277.1,221.3 279.0,220.8 280.6,219.5 281.2,219.7 282.4,219.1 283.9,216.8 286.4,215.4 286.3,214.4 287.5,213.7 288.6,214.8 290.6,214.9 290.9,213.5 294.7,214.6 295.8,212.6 291.2,209.6 290.2,209.9 286.0,207.1 286.5,204.9 288.1,204.1 287.8,202.1 283.5,200.8 283.6,199.8 285.9,198.9 287.0,197.5 289.9,198.1 292.3,197.5 290.7,196.6 289.5,194.4 286.1,192.9 285.9,190.1 284.4,189.4 284.9,187.7 282.7,184.8 282.1,183.2 285.3,183.0 286.7,181.6 289.5,182.7 289.9,183.8 295.8,184.8 297.0,186.9 296.1,190.0 298.1,190.8 299.3,190.5 301.7,191.6 302.8,193.1 305.6,193.2 305.4,194.5 306.7,195.3 308.1,195.5 311.7,193.8 313.4,193.5 314.9,194.3 314.8,196.7 317.2,198.6 318.9,197.2 320.1,196.9 322.9,197.8 325.5,197.9 329.0,199.2 329.4,199.9 332.1,201.2 334.2,200.9 337.6,198.8 338.5,200.8 339.7,201.6 343.2,201.5 344.9,200.9 347.0,202.0 348.3,202.0 351.5,201.0 354.7,201.8 355.9,200.7 356.1,199.0 358.3,200.6 359.0,202.9 356.7,204.4 355.4,205.7 353.7,206.3 351.6,208.2 351.1,210.0 351.2,210.8 352.3,211.3 353.6,213.8 355.0,214.3 354.5,216.1 355.3,218.2 353.5,217.2 351.9,217.9 350.1,219.4 350.4,220.7 351.5,221.5 351.0,222.5 350.1,222.1 349.2,222.2 348.8,221.3 346.4,220.9 345.1,223.4 342.5,222.9 342.0,225.3 339.9,225.8 339.4,226.5 339.6,229.0 338.8,229.6 337.8,233.6 336.1,233.5 335.4,235.0 332.6,233.8 330.9,234.6 330.2,233.9 328.2,235.7 327.4,238.2 325.6,236.8 324.4,236.5 324.8,234.8 321.9,234.0 321.8,232.3 320.5,230.8 318.4,231.6 317.9,231.1 315.1,230.1 313.8,233.0 314.0,234.2 311.7,235.3 308.8,234.9 308.1,235.7 307.3,235.5 303.9,238.2 302.8,237.4Z","M320.2,277.5 319.8,278.8 317.8,281.2 315.9,281.2 315.3,279.6 314.1,279.9 309.2,278.0 307.1,279.4 306.4,280.7 305.4,279.6 302.8,278.7 303.7,276.3 303.5,272.1 301.6,272.9 299.0,272.7 298.0,273.3 294.3,273.2 292.5,274.6 290.1,274.7 288.4,274.1 287.0,272.3 285.3,271.4 285.2,270.6 286.5,269.4 287.7,269.4 289.2,268.4 290.6,265.6 291.9,264.2 291.5,263.3 288.1,263.2 286.2,260.8 285.7,259.8 286.3,256.9 284.4,255.9 285.3,253.8 285.3,251.5 284.0,252.7 281.2,251.9 280.0,248.1 277.6,247.4 276.7,245.2 275.2,243.3 273.5,243.1 274.8,240.1 274.3,239.2 274.7,235.9 276.5,235.4 280.2,235.8 282.8,235.3 284.0,235.0 285.2,233.3 286.7,235.3 289.5,235.4 290.7,236.1 291.0,237.8 293.0,238.8 293.6,239.7 295.2,237.7 298.9,235.3 300.4,236.5 300.7,238.2 302.8,237.4 303.9,238.2 307.3,235.5 308.1,235.7 308.8,234.9 311.7,235.3 314.0,234.2 313.8,233.0 315.1,230.1 317.9,231.1 318.4,231.6 320.5,230.8 321.8,232.3 321.9,234.0 324.8,234.8 324.4,236.5 325.6,236.8 327.4,238.2 328.2,235.7 330.2,233.9 330.9,234.6 332.6,233.8 335.4,235.0 336.1,233.5 337.8,233.6 338.8,229.6 339.6,229.0 339.4,226.5 339.9,225.8 342.0,225.3 342.5,222.9 345.1,223.4 346.4,220.9 348.8,221.3 349.2,222.2 350.3,222.4 350.6,225.3 353.4,227.4 353.5,228.3 352.3,229.5 351.4,231.5 352.6,231.9 352.2,234.7 350.6,234.4 350.7,238.0 349.1,240.2 347.9,240.3 347.8,241.9 344.5,245.2 342.7,244.3 340.9,244.4 342.0,246.7 340.9,247.5 339.1,247.5 338.4,248.3 335.4,247.0 333.4,247.9 333.9,249.1 333.4,250.3 331.9,250.3 328.0,251.4 325.9,253.3 325.0,255.5 322.7,254.4 322.3,252.8 321.0,252.7 320.3,253.9 317.6,254.2 317.2,255.2 317.6,256.6 316.5,258.1 317.6,259.9 320.4,260.3 323.8,263.0 328.3,263.0 327.1,264.2 326.8,266.7 330.7,269.1 331.0,270.5 332.8,270.5 333.4,272.1 332.8,273.2 334.2,273.7 334.0,275.0 332.2,277.0 329.2,275.5 328.2,274.7 327.0,275.2 325.8,274.6 324.5,272.8 321.7,272.1 320.8,270.9 319.0,272.2 319.9,273.2 320.1,274.9 319.1,276.4 320.2,277.5Z","M166.7,83.2 164.3,83.0 163.0,82.3 162.1,80.6 161.0,79.9 160.2,78.3 155.5,73.5 152.2,72.5 151.5,71.3 151.4,69.5 149.8,68.5 147.7,66.1 147.2,64.9 144.5,65.2 141.4,61.9 136.7,59.7 136.0,57.8 135.1,57.0 135.7,55.3 133.7,53.5 131.8,53.2 129.9,53.6 128.3,52.9 124.9,52.7 122.0,51.0 117.8,50.7 119.4,50.4 120.2,49.5 122.1,49.1 122.4,46.6 120.7,44.8 118.9,45.8 116.7,46.2 108.8,42.4 107.6,42.9 107.1,40.4 108.7,38.5 108.6,37.4 106.0,36.5 102.0,36.7 97.4,33.9 97.7,31.7 96.6,30.9 93.8,31.6 93.3,31.0 89.7,31.8 87.0,30.3 88.0,28.3 86.9,27.5 88.0,24.1 91.2,23.2 93.0,21.8 92.9,20.8 94.9,20.6 96.9,17.8 97.2,16.4 100.4,16.1 102.6,15.4 107.1,16.5 109.0,15.9 109.9,14.6 107.5,13.8 106.9,12.4 110.2,12.7 113.2,14.3 114.8,13.7 115.2,12.6 116.8,12.9 119.7,11.0 121.5,11.1 122.4,10.0 124.5,9.4 125.0,10.4 126.8,10.4 128.2,12.5 129.9,11.2 131.2,11.8 133.2,10.2 135.5,9.9 135.6,11.2 136.9,11.5 137.7,14.2 140.2,15.1 142.5,18.2 145.5,19.8 148.2,20.3 151.2,22.6 152.9,22.3 154.3,23.3 155.1,25.0 157.2,25.8 157.9,25.5 159.3,27.3 160.7,28.0 159.3,29.7 160.9,31.6 163.0,32.7 166.1,32.5 167.0,33.6 171.6,35.0 172.1,36.5 171.6,37.5 174.7,38.4 176.6,38.3 178.2,37.6 179.7,38.4 180.8,36.5 182.1,36.3 183.8,37.1 184.8,34.8 186.1,33.8 188.0,33.6 188.7,32.7 190.4,33.1 192.9,31.4 195.6,31.4 198.0,30.8 199.0,31.5 200.9,31.8 202.0,30.9 202.4,29.2 205.2,28.9 205.9,30.7 213.7,32.7 215.9,31.7 217.8,34.6 221.0,35.9 221.6,38.4 219.8,42.9 219.1,43.8 218.9,46.8 217.2,49.9 217.1,52.0 215.0,52.6 213.5,52.4 212.0,53.5 212.4,56.1 208.9,55.8 207.4,56.3 208.9,59.7 207.4,61.1 207.2,62.4 204.8,64.2 202.1,63.9 201.0,64.3 199.0,63.9 197.0,65.3 198.7,68.4 199.4,69.1 200.5,71.7 198.5,71.8 197.2,72.5 197.5,75.0 198.5,76.8 200.6,77.6 202.8,77.5 206.5,78.2 205.2,81.3 205.9,83.5 208.5,86.7 209.5,87.5 206.4,91.3 204.2,90.2 202.0,92.1 201.0,92.2 200.6,93.9 199.2,93.9 198.3,94.7 196.2,92.9 194.8,90.8 194.5,89.1 192.8,89.1 189.3,90.4 188.3,91.4 186.8,90.5 188.4,89.7 188.1,87.2 185.2,88.9 183.9,88.6 183.1,89.5 181.7,89.7 180.0,88.4 180.3,87.8 178.1,84.5 176.9,83.4 174.5,83.9 172.2,85.4 171.1,84.9 170.0,86.1 166.7,83.2Z","M127.3,92.1 124.1,92.0 123.3,89.8 123.7,86.7 121.2,87.4 120.0,86.6 118.9,87.2 115.4,84.9 113.3,84.5 111.6,83.1 109.3,82.7 106.9,81.3 105.8,81.2 106.4,79.1 104.8,76.7 105.7,72.5 104.7,71.7 105.3,70.0 104.7,68.9 105.2,66.9 104.0,65.1 103.4,62.2 103.5,60.9 101.8,58.1 102.7,54.5 105.7,54.3 108.0,50.7 111.7,49.7 113.6,47.9 113.4,46.0 114.8,45.1 116.7,46.2 118.9,45.8 120.7,44.8 122.4,46.6 122.1,49.1 120.2,49.5 119.4,50.4 117.8,50.7 122.0,51.0 124.9,52.7 128.3,52.9 129.9,53.6 131.8,53.2 133.7,53.5 135.7,55.3 135.1,57.0 136.0,57.8 136.7,59.7 141.4,61.9 144.5,65.2 147.2,64.9 147.7,66.1 149.8,68.5 151.4,69.5 151.5,71.3 152.2,72.5 155.5,73.5 160.2,78.3 159.8,79.6 158.0,79.9 156.7,79.1 153.9,79.5 151.9,81.0 150.7,82.4 148.8,82.7 148.4,83.6 146.1,85.1 144.3,84.1 143.4,84.9 145.5,87.4 145.4,89.4 144.0,91.6 142.1,92.7 141.4,93.8 139.9,94.0 138.4,95.3 135.5,94.6 131.4,92.5 128.6,92.8 127.6,91.5 127.3,92.1Z","M162.7,120.6 161.9,121.1 160.3,120.6 157.6,118.9 158.0,115.1 157.0,113.9 155.4,114.0 154.3,113.0 153.6,111.4 151.8,113.3 150.3,113.4 148.9,109.9 147.1,107.5 146.2,104.8 146.2,103.4 145.3,101.7 140.9,99.4 139.9,99.4 141.0,98.4 140.6,96.3 142.9,95.6 144.7,93.7 145.7,93.7 144.0,91.6 145.4,89.4 145.5,87.4 143.4,84.9 144.3,84.1 146.1,85.1 148.4,83.6 148.8,82.7 150.7,82.4 151.9,81.0 153.9,79.5 156.7,79.1 158.0,79.9 159.8,79.6 160.2,78.3 161.0,79.9 162.1,80.6 163.0,82.3 164.3,83.0 166.7,83.2 170.0,86.1 171.1,84.9 172.2,85.4 174.5,83.9 176.9,83.4 178.1,84.5 180.3,87.8 180.0,88.4 181.7,89.7 183.1,89.5 183.9,88.6 185.2,88.9 188.1,87.2 188.4,89.7 186.8,90.5 188.3,91.4 189.3,92.7 190.6,93.4 189.7,94.6 189.7,95.8 191.9,97.0 191.6,98.1 194.9,101.0 193.6,104.9 194.6,106.7 196.0,107.9 194.1,109.2 195.2,110.9 194.3,112.2 195.1,113.4 196.6,113.7 198.4,115.7 198.8,116.9 196.7,117.1 195.4,115.3 193.0,115.3 191.9,114.7 189.8,115.3 187.8,113.7 186.8,113.7 185.7,114.7 183.2,115.5 180.8,115.7 179.1,116.9 178.4,118.3 178.0,121.5 176.3,123.1 178.3,126.8 178.2,127.7 174.1,129.6 174.1,130.0 173.2,128.9 171.2,129.2 167.7,128.1 166.2,126.7 167.1,126.0 167.0,124.5 164.5,123.4 162.7,120.6Z","M137.5,140.3 135.5,142.3 134.8,144.8 132.5,142.8 133.7,141.3 132.9,139.7 131.6,139.9 129.5,139.2 128.3,137.7 126.3,137.0 124.5,137.3 123.5,138.4 120.0,137.8 110.5,137.3 110.6,135.9 111.9,134.7 111.6,132.0 110.2,130.4 111.7,129.2 111.7,128.1 116.0,124.4 118.6,120.8 122.6,118.2 124.5,117.5 124.2,116.5 121.1,116.5 121.8,112.3 123.5,110.6 122.9,109.8 121.0,105.5 122.0,105.2 122.2,103.7 123.8,102.2 126.2,101.5 128.1,100.0 129.8,100.2 131.7,99.4 132.6,99.6 136.1,97.5 136.2,96.0 135.5,94.6 138.4,95.3 139.9,94.0 141.4,93.8 142.1,92.7 144.0,91.6 145.7,93.7 144.7,93.7 142.9,95.6 140.6,96.3 141.0,98.4 139.9,99.4 140.9,99.4 145.3,101.7 146.2,103.4 146.2,104.8 147.1,107.5 148.9,109.9 150.3,113.4 151.8,113.3 153.6,111.4 154.3,113.0 155.4,114.0 157.0,113.9 158.0,115.1 157.6,118.9 159.5,120.0 161.5,121.8 161.3,123.3 159.1,123.1 159.6,124.4 161.1,124.6 162.8,125.9 162.4,128.8 162.6,129.2 159.8,129.1 159.1,131.0 156.5,132.5 157.9,134.2 156.8,135.0 154.9,135.1 153.9,134.2 151.2,135.2 149.8,138.2 150.5,139.7 148.5,140.3 147.7,141.4 145.9,141.7 143.0,140.0 142.0,140.2 139.6,141.5 137.5,140.3Z","M190.6,143.3 190.2,141.8 187.2,140.5 184.9,141.6 183.6,143.1 181.7,144.4 180.1,142.0 178.3,142.7 176.5,138.9 178.0,135.1 179.0,134.8 180.7,132.5 176.6,130.9 175.5,129.6 174.1,129.6 178.2,127.7 178.3,126.8 176.3,123.1 178.0,121.5 178.4,118.3 179.1,116.9 180.8,115.7 183.2,115.5 185.7,114.7 186.8,113.7 187.8,113.7 189.8,115.3 191.9,114.7 193.0,115.3 195.4,115.3 196.7,117.1 198.8,116.9 198.4,115.7 196.6,113.7 197.7,112.2 198.8,112.0 199.9,110.6 201.1,111.0 201.6,112.3 202.7,112.8 202.5,114.2 203.8,114.9 204.2,116.4 207.4,118.3 209.1,120.0 211.3,119.2 213.6,119.3 214.0,120.3 216.9,121.7 217.7,122.6 218.9,122.3 220.3,123.4 219.6,126.3 223.2,127.4 225.3,128.8 226.4,128.4 228.2,129.3 229.8,131.0 233.2,132.0 234.0,133.1 232.0,133.7 229.1,136.0 227.6,137.6 226.3,137.6 225.5,139.6 223.5,140.4 222.3,141.5 223.0,144.1 221.8,145.7 220.1,146.9 221.5,149.4 220.4,151.5 218.4,153.0 218.0,155.2 217.2,155.9 217.1,157.8 216.5,159.4 215.2,159.9 212.8,156.9 208.8,157.6 206.0,156.7 205.7,155.7 203.1,155.0 201.1,153.6 201.3,152.8 199.3,151.8 197.4,152.7 196.5,151.2 194.5,150.1 197.4,147.0 195.2,146.5 192.1,144.8 190.6,143.3Z"];
+const SITEFIN=[{"ann":98,"mix":[38,23,12,9,10,8],"best":0.96,"px":174.3,"py":443.5},{"ann":90,"mix":[41,24,12,8,7,8],"best":0.93,"px":167.7,"py":161.9},{"ann":76,"mix":[43,22,11,9,7,8],"best":0.9,"px":189.9,"py":363.9},{"ann":72,"mix":[44,21,12,9,6,8],"best":0.88,"px":87.6,"py":262.5},{"ann":71,"mix":[40,29,12,8,5,6],"best":0.87,"px":92.9,"py":333.5},{"ann":75,"mix":[46,22,11,8,5,8],"best":0.86,"px":109.9,"py":343.6},{"ann":61,"mix":[48,19,13,8,4,8],"best":0.82,"px":360.4,"py":270.6},{"ann":66,"mix":[50,18,12,9,3,8],"best":0.78,"px":220.6,"py":441.5},{"ann":24,"mix":[42.3,21.6,11.9,8.7,7.7,7.9],"best":0.918,"px":200.2,"py":296.2},{"ann":22,"mix":[43.7,21.1,12.0,8.7,6.9,7.6],"best":0.898,"px":143.2,"py":192.5},{"ann":20,"mix":[45.0,20.7,12.1,8.8,6.2,7.2],"best":0.879,"px":232.4,"py":193.6},{"ann":18,"mix":[41.8,21.7,11.8,8.7,7.9,8.0],"best":0.925,"px":144.4,"py":267.9},{"ann":17,"mix":[41.2,21.9,11.8,8.6,8.3,8.2],"best":0.934,"px":163.4,"py":478.6},{"ann":16,"mix":[45.7,20.4,12.1,8.8,5.8,7.1],"best":0.87,"px":151.5,"py":498.2},{"ann":15,"mix":[46.2,20.3,12.2,8.8,5.6,7.0],"best":0.862,"px":271.6,"py":358.5},{"ann":14,"mix":[47.0,20.0,12.2,8.9,5.1,6.8],"best":0.85,"px":316.5,"py":311.5},{"ann":13,"mix":[48.8,19.4,12.4,9.0,4.1,6.3],"best":0.824,"px":418.8,"py":206.4},{"ann":13,"mix":[48.0,19.7,12.3,8.9,4.6,6.5],"best":0.836,"px":304.7,"py":216.3},{"ann":12,"mix":[42.8,21.4,11.9,8.7,7.4,7.8],"best":0.91,"px":160.3,"py":123.7},{"ann":12,"mix":[42.0,21.7,11.8,8.7,7.8,8.0],"best":0.922,"px":92.1,"py":295.8},{"ann":11,"mix":[44.2,20.9,12.0,8.8,6.7,7.5],"best":0.891,"px":98.1,"py":275.3},{"ann":10,"mix":[46.5,20.2,12.2,8.9,5.4,6.9],"best":0.858,"px":244.1,"py":294.4},{"ann":9,"mix":[44.5,20.8,12.0,8.8,6.5,7.4],"best":0.886,"px":144.4,"py":120.6},{"ann":7,"mix":[40.7,22.1,11.7,8.6,8.6,8.3],"best":0.942,"px":157.9,"py":455.6}];
+let SCOPE=-1; let SHOWALL=0;
+</script>
+<script>
+/* Warehouse Intelligence & Opportunity Agent — Command Center demo. All data illustrative. */
+"use strict";
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const C={grn:'#0F7A4F',amb:'#8F5B00',red:'#B62F2F',acc:'#7823DC',acc2:'#5A1AA8',teal:'#9B5BE8',mut:'#9A96A8',blue:'#6C1FC7'};
+const hcol=s=>s>=75?C.grn:s>=50?C.amb:C.red;
+const inr=n=>n.toLocaleString('en-IN');
+
+/* ---------------- data ---------------- */
+const SITES=[
+ {n:'Bangalore DC',reg:'South',gx:7.0,gy:18.0,top8:true,cost:12.4,util:85,peak:93,thr:124,score:92,lx:-12,ly:4,anch:'end'},
+ {n:'Delhi NCR DC',reg:'North',gx:9.0,gy:4.0,top8:true,cost:13.1,util:78,peak:90,thr:108,score:85,lx:12,ly:-6,anch:'start'},
+ {n:'Hyderabad DC',reg:'South',gx:8.2,gy:14.0,top8:true,cost:13.8,util:73,peak:91,thr:86,score:78,lx:12,ly:4,anch:'start'},
+ {n:'Ahmedabad DC',reg:'West',gx:3.8,gy:8.0,top8:true,cost:15.6,util:65,peak:82,thr:72,score:68,lx:-12,ly:-4,anch:'end'},
+ {n:'Mumbai DC',reg:'West',gx:4.1,gy:12.0,top8:true,cost:16.9,util:62,peak:88,thr:66,score:60,lx:-12,ly:4,anch:'end'},
+ {n:'Pune DC',reg:'West',gx:5.8,gy:13.3,top8:true,cost:18.2,util:58,peak:79,thr:64,score:55,lx:10,ly:14,anch:'start'},
+ {n:'Kolkata DC',reg:'East',gx:14.6,gy:10.0,top8:true,cost:19.8,util:52,peak:74,thr:48,score:42,lx:12,ly:-2,anch:'start'},
+ {n:'Chennai DC',reg:'South',gx:9.9,gy:18.6,top8:true,cost:23.6,util:48,peak:70,thr:44,score:28,lx:12,ly:6,anch:'start'},
+ {n:'Nagpur DC',reg:'Central',cost:14.2,util:70,peak:88,thr:58,score:74,top8:false},
+ {n:'Jaipur DC',reg:'North',cost:15.1,util:66,peak:85,thr:52,score:66,top8:false},
+ {n:'Lucknow DC',reg:'North',cost:16.4,util:61,peak:83,thr:46,score:58,top8:false},
+ {n:'Indore DC',reg:'Central',cost:14.8,util:72,peak:89,thr:44,score:77,top8:false},
+ {n:'Coimbatore DC',reg:'South',cost:13.9,util:75,peak:90,thr:42,score:81,top8:false},
+ {n:'Kochi DC',reg:'South',cost:17.2,util:59,peak:80,thr:34,score:54,top8:false},
+ {n:'Visakhapatnam DC',reg:'East',cost:16.8,util:57,peak:78,thr:32,score:51,top8:false},
+ {n:'Bhubaneswar DC',reg:'East',cost:18.1,util:54,peak:76,thr:28,score:46,top8:false},
+ {n:'Guwahati DC',reg:'North-East',cost:21.4,util:49,peak:72,thr:22,score:35,top8:false},
+ {n:'Patna DC',reg:'East',cost:19.6,util:51,peak:74,thr:24,score:40,top8:false},
+ {n:'Chandigarh DC',reg:'North',cost:15.3,util:68,peak:86,thr:30,score:71,top8:false},
+ {n:'Surat DC',reg:'West',cost:14.6,util:71,peak:88,thr:30,score:76,top8:false},
+ {n:'Vadodara DC',reg:'West',cost:15.9,util:64,peak:84,thr:26,score:63,top8:false},
+ {n:'Raipur DC',reg:'Central',cost:17.8,util:56,peak:79,thr:20,score:49,top8:false},
+ {n:'Ludhiana DC',reg:'North',cost:16.1,util:63,peak:82,thr:22,score:61,top8:false},
+ {n:'Mysuru DC',reg:'South',cost:13.5,util:77,peak:91,thr:20,score:84,top8:false}
+];
+const OPPS=[
+ {t:'Recover unclaimed service credits — estate-wide',save:'₹3.4 Cr one-off',bank:'C · one-off recovery',dots:1,urg:'Act now',urgc:'red', v:56,p:100,e:92,u:96,c:88},
+ {t:'Renegotiate Chennai 3PL rate (should-cost ready)',save:'₹3.6 Cr/yr',bank:'A · budget-line',dots:2,urg:'54 days',urgc:'amb', v:74,p:80,e:74,u:84,c:80},
+ {t:'Consolidate Mumbai & Thane DC',save:'₹8.2 Cr/yr',bank:'A · budget-line',dots:4,urg:'Validate',urgc:'amb', v:100,p:52,e:34,u:58,c:60,sim:true},
+ {t:'Re-slot fast movers — Pune DC',save:'₹1.8 Cr/yr',bank:'A · budget-line',dots:2,urg:'Quick win',urgc:'grn', v:44,p:90,e:78,u:50,c:84},
+ {t:'Stop escalation leakage — Carrier C invoices',save:'₹0.9 Cr/yr',bank:'A · leakage stop',dots:1,urg:'This month',urgc:'grn', v:30,p:96,e:90,u:72,c:92},
+ {t:'Sub-let spare space — Ahmedabad DC',save:'₹1.2 Cr/yr',bank:'B · space monetised',dots:3,urg:'Explore',urgc:'grey', v:38,p:58,e:54,u:40,c:55},
+];
+const CONTRACTS=[
+ ['Chennai DC','3PL operations','₹32 Cr','+9%','red','54 days','amb','High','red'],
+ ['Kolkata DC','3PL operations','₹21 Cr','−3%','grn','Expired · month-to-month','red','High','red'],
+ ['Ahmedabad DC','Manpower agency','₹9 Cr','+6%','red','88 days','amb','High','red'],
+ ['Pune DC','Lease','₹18 Cr','+4%','red','136 days','txt','Medium','amb'],
+ ['Mumbai DC','MHE AMC','₹6 Cr','+2%','red','14 months','txt','Medium','amb'],
+ ['Bangalore DC','Carrier','₹14 Cr','at market','mut','22 months','txt','Low','grn'],
+];
+const BRIEF=[
+ {c:'red',t:'Kolkata DC · cost per unit +12% this month',d:'Overtime up — peak volume +8% on flat headcount. Points to re-rostering.',chip:'~₹1.1 Cr/yr',cc:'red'},
+ {c:'amb',t:'Chennai 3PL enters its 60-day notice window',d:'Renew, renegotiate or exit — decide before auto-renew locks in.',chip:'Act in 12 days',cc:'amber'},
+ {c:'amb',t:'Pune DC · near-expiry stock crossed the markdown trigger',d:'6% of inventory value is now inside the risk window.',chip:'₹0.8 Cr at risk',cc:'amber'},
+ {c:'grn',t:'Bangalore DC · picking productivity +6% and holding',d:'Last quarter\u2019s re-slot is sustaining. No action needed.',chip:'on track',cc:'green'},
+ {c:'acc',t:'Pipeline: 2 new opportunities (₹4.7 Cr) · 1 realized (₹1.2 Cr captured)',d:'Value-realization tracker updated with this refresh.',chip:'view tracker',cc:'violet'},
+];
+const HEADS=[['Labour',356],['Space & facility',187],['Transport & yard',98],['Utilities',77],['Equipment',53],['Others',71]];
+const KPIS=[
+ {lab:'Total sites',val:'24',sub:'across 6 regions',kc:'#9B5BE8'},
+ {lab:'Annual spend',val:'₹842 Cr',sub:'<span class="warn">▲ 8.4%</span> vs LY',kc:'#6C1FC7'},
+ {lab:'Cost per unit',val:'₹15.2',sub:'<span class="warn">+14%</span> vs peer-best mix',kc:'#7823DC'},
+ {lab:'Avg utilisation',val:'71%',sub:'peak month 92%',kc:'#B07DF5'},
+ {lab:'Critical sites',val:'3',sub:'health score &lt; 50',kc:'#C63A3A'},
+ {lab:'Contracts ≤ 90 days',val:'5',sub:'2 with auto-renew traps',kc:'#B87600'},
+ {lab:'Leakage found',val:'₹4.6 Cr',sub:'invoice vs rate card · recurring',kc:'#C63A3A'},
+ {lab:'Savings identified',val:'₹96 Cr',sub:'<b class="up">₹58 Cr realizable</b> after overlaps',kc:'#1E9E6A'},
+];
+
+/* ---------------- helpers ---------------- */
+const el=(h)=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild;};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('on'),2200);}
+function bindTips(root){$$('[data-tip]',root).forEach(n=>{n.addEventListener('mousemove',e=>{const t=$('#tip');t.innerHTML=n.dataset.tip;t.style.display='block';t.style.left=(e.clientX+14)+'px';t.style.top=(e.clientY+14)+'px';});n.addEventListener('mouseleave',()=>$('#tip').style.display='none');});}
+const dots=n=>'<span class="effort">'+[1,2,3,4,5].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')+'</span>';
+
+/* ---------------- nav ---------------- */
+const IC={gp:'<path d="M3 20h18"/><path d="M6 20V9M12 20V5M18 20v-8"/><path d="M4.5 12.5l3-3 4.5 4 5.5-6"/>', up:'<path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 16v3a1.6 1.6 0 001.6 1.6h12.8A1.6 1.6 0 0020 19v-3"/>', ov:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+ sc:'<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>', wa:'<path d="M3 17l5-5 4 3 4-6 5 4"/><path d="M3 21h18"/>',
+ be:'<circle cx="7" cy="16" r="2.6"/><circle cx="15" cy="8" r="2.6"/><path d="M3 21L21 3"/>',
+ co:'<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/>',
+ op:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
+ lk:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
+ br:'<path d="M18 8a6 6 0 10-12 0c0 7-2 8-2 8h16s-2-1-2-8"/><path d="M10 20a2 2 0 004 0"/>',
+ as:'<path d="M21 12a8 8 0 01-8 8H5l-2 2V12a8 8 0 018-8h2a8 8 0 018 8z"/>'};
+const NAV=[['overview','Overview',IC.ov],['upload','Upload &amp; coverage',IC.up],['gaps','Gap register',IC.gp],['score','Site scorecards',IC.sc],['water','Cost waterfall',IC.wa],['bench','Benchmarking',IC.be],['contracts','Contract intelligence',IC.co],['opps','Opportunities',IC.op],['locked','Locked opportunities',IC.lk],['brief','Estate Brief',IC.br],['assistant','Assistant',IC.as]];
+function buildNav(){const n=$('#nav');NAV.forEach(([id,lab,ic],i)=>{const b=el(`<button data-nav="${id}" class="${i===0?'on':''}"><svg viewBox="0 0 24 24">${ic}</svg><span>${lab}</span></button>`);b.onclick=()=>go(id);n.appendChild(b);});}
+function go(id){$$('.view').forEach(v=>v.classList.remove('on'));$('#view-'+id).classList.add('on');$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.nav===id));$('#main').scrollTop=0;}
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)go(g.dataset.go);});
+
+/* ---------------- KPI strip ---------------- */
+function buildKpis(){
+  const k=$('#kpis'); k.innerHTML='';
+  let list;
+  if(SCOPE<0){ list=KPIS; }
+  else{
+    const st=SITES[SCOPE], f=SITEFIN[SCOPE];
+    const gap=(st.cost/ (st.cost*f.best) -1)*100;
+    list=[
+      {lab:'Site',val:st.n.replace(' DC',''),sub:`${st.reg} region · health ${st.score}`,kc:hcol(st.score)},
+      {lab:'Annual cost',val:'₹'+f.ann+' Cr',sub:`₹${st.cost}/unit · <span class="warn">+${gap.toFixed(0)}%</span> vs peer-best`,kc:'#6C1FC7'},
+      {lab:'Utilisation',val:st.util+'%',sub:`peak ${st.peak}%`,kc:'#D4B5FF'},
+      {lab:'Throughput',val:inr(st.thr*1000),sub:'units / month',kc:'#9B5BE8'},
+      {lab:'Cost per unit',val:'₹'+st.cost,sub:`peer-best ₹${(st.cost*f.best).toFixed(1)}`,kc:'#7823DC'},
+      {lab:'Districts served',val:String(DCDIST[SCOPE]),sub:'districts · nearest-DC coverage',kc:'#B87600'},
+      {lab:'Health score',val:String(st.score),sub:st.score>=75?'healthy':st.score>=50?'watch':'action required',kc:hcol(st.score)},
+      {lab:'Savings identified',val:'₹'+(f.ann*(1-f.best)).toFixed(1)+' Cr',sub:'<b class="up">at peer-best mix</b>',kc:'#1E9E6A'},
+    ];
+  }
+  list.forEach(d=>k.appendChild(el(`<div class="kpi" style="--kc:${d.kc}"><div class="lab">${d.lab}</div><div class="val num">${d.val}</div><div class="sub">${d.sub}</div></div>`)));
+}
+
+/* ---------------- India dot map ---------------- */
+const MAPC=["#5B2CBE", "#7244C2", "#8965BD", "#9B64DA", "#9E83D7", "#B4A0D6", "#692CBE", "#7E44C2", "#8165BD", "#8F64DA", "#A683D7", "#B9A0D6", "#5B2CBE", "#7244C2", "#8965BD", "#9B64DA", "#9E83D7", "#B4A0D6", "#692CBE", "#7E44C2", "#8165BD", "#8F64DA", "#A683D7", "#B9A0D6"];
+function buildMap(){
+  let ds='';
+  for(const p of IND_PATHS){
+    const on = SCOPE<0 || p.k===SCOPE;
+    const fill = (SCOPE>=0 && on) ? 'rgba(120,35,220,.13)' : '#FFFFFF';
+    ds+=`<path d="${p.d}" fill="${fill}" stroke="#B99BEA" stroke-width="${on?0.9:0.7}" stroke-opacity="${on?1:.55}" data-tip="<b>${p.s}</b>"/>`;
+  }
+  let marks='';
+  SITES.forEach((st,i)=>{
+    if(!SHOWALL && !st.top8 && SCOPE!==i) return;
+    const g=SITEFIN[i], col=hcol(st.score), dim = SCOPE>=0 && SCOPE!==i;
+    const r = 5.5 + (st.ann_r||0);
+    marks+=`<g class="site" data-i="${i}" style="cursor:pointer;opacity:${dim?0.3:1}" data-tip="<b>${st.n}</b><br>Health ${st.score} · Util ${st.util}% (peak ${st.peak}%)<br>Cost ₹${st.cost}/unit · ₹${SITEFIN[i].ann} Cr/yr<br><i>serves ${DCDIST[i]} districts</i>">
+      <circle class="pulse" cx="${g.px}" cy="${g.py}" r="${SHOWALL?10:13}" fill="none" stroke="${col}" stroke-width="1.5" style="animation-delay:${(i*0.33).toFixed(2)}s"/>
+      <circle cx="${g.px}" cy="${g.py}" r="${SHOWALL?7.5:10}" fill="${col}" fill-opacity=".20" stroke="${col}" stroke-width="1.8"/>
+      <circle cx="${g.px}" cy="${g.py}" r="${SHOWALL?3:3.8}" fill="${col}"/>
+      <text class="maplabel" style="font-size:${SHOWALL?9.2:11}px" x="${g.px+(SHOWALL?10:13)}" y="${g.py+4}" text-anchor="start">${st.n.replace(' DC','')}</text></g>`;
+  });
+  $('#map').innerHTML=`<svg viewBox="0 0 520 560" preserveAspectRatio="xMidYMid meet">${ds}${marks}</svg>`;
+  $$('#map .site').forEach(g=>g.onclick=()=>{setScope(+g.dataset.i);go('score');selectSite(+g.dataset.i);});
+  bindTips($('#map'));
+}
+
+/* ---------------- global scope (estate vs one site) ---------------- */
+function setScope(i){
+  SCOPE=i;
+  const sel=$('#scopesel'); if(sel) sel.value=String(i);
+  buildMap();buildKpis();
+  waterfall('#ov-water',420,250,true);waterfall('#big-water',920,360,false);donutAndDrivers();
+  const b=$('#scopebadge');
+  if(b) b.innerHTML = SCOPE<0
+    ? `<span class="dot" style="background:var(--acc2)"></span>Estate-wide · 24 sites`
+    : `<span class="dot" style="background:${hcol(SITES[SCOPE].score)}"></span>Scoped to ${SITES[SCOPE].n}`;
+  if(SCOPE>=0) CUR=SCOPE, buildSiteChips(), renderScore();
+}
+
+/* ---------------- overview widgets ---------------- */
+function buildOvOpps(){
+  const w=normW(), ranked=OPPS.map(o=>({...o,ix:idx(o,w)})).sort((a,b)=>b.ix-a.ix).slice(0,3);
+  $('#ov-opps').innerHTML=ranked.map((o,i)=>oppRow(o,i+1)).join('');
+}
+function buildOvContracts(){
+  const rows=CONTRACTS.slice(0,4).map(r=>`<tr><td><b>${r[0]}</b><br><span style="font-size:10.5px;color:var(--mut)">${r[1]}</span></td>
+   <td class="num">${r[2]}</td><td class="num" style="color:var(--${r[4]==='txt'?'text':r[4]})">${r[3]}</td>
+   <td class="num" style="color:var(--${r[6]==='txt'?'text':r[6]});font-weight:${r[6]==='txt'?'400':'700'}">${r[5]}</td>
+   <td><span class="tag t-${r[8]}">${r[7]}</span></td></tr>`).join('');
+  $('#ov-contracts').innerHTML=`<table class="t"><tr><th>Counterparty</th><th>Value/yr</th><th>vs market</th><th>Expiry</th><th>Risk</th></tr>${rows}</table>`;
+}
+function buildOvTable(){
+  const rows=SITES.map((s,i)=>`<tr style="cursor:pointer" onclick="go('score');selectSite(${i})"><td><span class="dotb" style="background:${hcol(s.score)}"></span><b>${s.n}</b></td>
+   <td class="num">₹${s.cost}</td><td class="num">${s.util}%</td><td class="num">${inr(s.thr*1000)}</td>
+   <td><span class="scorepill" style="background:${hcol(s.score)}22;color:${hcol(s.score)}">${s.score}</span></td></tr>`).join('');
+  $('#ov-kpitable').innerHTML=`<table class="t"><tr><th>Warehouse</th><th>Cost/unit</th><th>Util</th><th>Units/mo</th><th>Score</th></tr>${rows}</table>`;
+}
+function heads(){
+  if(SCOPE<0) return {list:HEADS,total:842,best:748,unit:'₹ Cr / year',who:'Estate'};
+  const f=SITEFIN[SCOPE], names=HEADS.map(h=>h[0]);
+  const list=names.map((n,i)=>[n, +(f.ann*f.mix[i]/100).toFixed(1)]);
+  return {list, total:f.ann, best:+(f.ann*f.best).toFixed(1), unit:'₹ Cr / year', who:SITES[SCOPE].n};
+}
+function waterfall(sel,W,H,compact){
+  const node=$(sel); if(!node) return;
+  const D=heads(), HD=D.list, pad={l:44,r:14,t:26,b:34},aw=W-pad.l-pad.r,ah=H-pad.t-pad.b;
+  const max=Math.ceil(D.total*1.12/(D.total>300?100:10))*(D.total>300?100:10);
+  const yv=v=>pad.t+ah-(v/max)*ah; const n=HD.length+1, stepx=aw/n, bw=stepx*0.6;
+  const ticks=[0,.25,.5,.75,1].map(t=>+(max*t).toFixed(0));
+  let s2='';ticks.forEach(g=>{s2+=`<line x1="${pad.l}" y1="${yv(g)}" x2="${W-pad.r}" y2="${yv(g)}" stroke="#C9C0DE"/><text x="${pad.l-8}" y="${yv(g)+4}" font-size="10" fill="#6B6B7B" text-anchor="end" class="num">${g}</text>`;});
+  s2+=`<line x1="${pad.l}" y1="${yv(D.best)}" x2="${W-pad.r}" y2="${yv(D.best)}" stroke="#1A1A2E" stroke-width="1.4" stroke-dasharray="6 5"/><text x="${W-pad.r}" y="${yv(D.best)-6}" font-size="10.5" font-weight="700" fill="#1A1A2E" text-anchor="end">at peer-best mix ₹${D.best}</text>`;
+  let cum=0;
+  HD.forEach(([nm,v],i)=>{const x=pad.l+i*stepx+(stepx-bw)/2,y0=yv(cum),y1=yv(cum+v);const col=i===0?C.red:'#7823DC';
+    if(i>0)s2+=`<line x1="${x-(stepx-bw)}" y1="${y0}" x2="${x}" y2="${y0}" stroke="#C9C0DE" stroke-dasharray="3 3"/>`;
+    s2+=`<rect x="${x}" y="${y1}" width="${bw}" height="${y0-y1}" rx="3.5" fill="${col}" data-tip="<b>${nm}</b><br>₹${v} Cr · ${(v/D.total*100).toFixed(0)}% of ${D.who} cost"/>`;
+    s2+=`<text x="${x+bw/2}" y="${y1-6}" font-size="${compact?10:11}" font-weight="800" fill="${i===0?C.red:'#D6CCEB'}" text-anchor="middle" class="num">+${v}</text>`;
+    s2+=`<text x="${x+bw/2}" y="${H-14}" font-size="${compact?9.3:10}" font-weight="600" fill="#6B6B7B" text-anchor="middle">${compact?nm.split(' ')[0]:nm}</text>`;cum+=v;});
+  const x=pad.l+HD.length*stepx+(stepx-bw)/2; cum=+cum.toFixed(1);
+  s2+=`<rect x="${x}" y="${yv(cum)}" width="${bw}" height="${yv(0)-yv(cum)}" rx="3.5" fill="#1A1A2E" fill-opacity=".92"/><text x="${x+bw/2}" y="${yv(cum)-6}" font-size="11.5" font-weight="800" fill="#1A1A2E" text-anchor="middle" class="num">${cum}</text><text x="${x+bw/2}" y="${H-14}" font-size="10" font-weight="700" fill="#3A3A4E" text-anchor="middle">Total</text>`;
+  node.innerHTML=`<svg viewBox="0 0 ${W} ${H}">${s2}</svg>`;bindTips(node);
+  const t=$('#watertitle'); if(t) t.textContent=`${D.who} cost build-up — ₹${D.total} Cr`;
+}
+function donutAndDrivers(){
+  const D=heads(), tot=D.total;
+  const cols=[C.acc,C.teal,C.blue,C.amb,C.grn,C.mut];
+  const sl=D.list.map(([n,v],i)=>[n,+(v/tot*100).toFixed(1),cols[i]]);
+  let acc=0,grad=sl.map(([n,p,c])=>{const a=acc;acc+=p;return `${c} ${a}% ${acc}%`;}).join(',');
+  const leg=sl.map(([n,p,c])=>`<div class="r"><span><i style="background:${c}"></i>${n}</span><b class="num">${p}%</b></div>`).join('');
+  const gapPct=((tot/D.best-1)*100).toFixed(0), gapAbs=(tot-D.best).toFixed(1);
+  const who = SCOPE<0 ? 'estate cost' : SITES[SCOPE].n+' cost';
+  const lead = SCOPE<0
+    ? `labour is ${sl[0][1]}% of estate cost and runs <b>+18% above the peer-best mix</b> — concentrated in picking at Chennai, Kolkata and Pune.`
+    : `labour is ${sl[0][1]}% of this site's cost; closing to peer-best mix is worth <b>₹${gapAbs} Cr/yr</b> (${gapPct}% above best comparable).`;
+  $('#water-extra').innerHTML=`<div class="grid" style="grid-template-columns:1fr 1fr;align-items:start">
+    <div><div class="eyebrow" style="margin-bottom:6px">Top cost drivers · ${who}</div><div class="donutrow"><div class="donut" style="background:conic-gradient(${grad})"></div><div class="dleg">${leg}</div></div></div>
+    <div><div class="callout"><b>Biggest lever:</b> ${lead} Cost/unit here is built bottom-up: activity minutes × resource cost-rates, reconciled to the P&amp;L.</div>
+    <div class="note"><b>Formula behind every bar:</b> Cost/unit = Σ (activity minutes × resource ₹/practical-minute) + consumables + allocated overhead. Idle capacity is shown separately, never smeared — the stack always ties back to the GL.</div></div></div>`;
+}
+function scatter(sel,W,H,big){
+  const pad={l:46,r:16,t:26,b:36},aw=W-pad.l-pad.r,ah=H-pad.t-pad.b;
+  const X=u=>pad.l+(u-40)/(95-40)*aw, Y=c=>pad.t+ah-(c-10)/(26-10)*ah;
+  let s='';
+  s+=`<rect x="${pad.l}" y="${pad.t}" width="${X(65)-pad.l}" height="${Y(16)-pad.t}" fill="${C.red}" fill-opacity=".05"/>`;
+  s+=`<rect x="${X(65)}" y="${Y(16)}" width="${W-pad.r-X(65)}" height="${pad.t+ah-Y(16)}" fill="${C.grn}" fill-opacity=".05"/>`;
+  s+=`<line x1="${X(65)}" y1="${pad.t}" x2="${X(65)}" y2="${pad.t+ah}" stroke="#D9CFEE" stroke-dasharray="4 4"/><line x1="${pad.l}" y1="${Y(16)}" x2="${W-pad.r}" y2="${Y(16)}" stroke="#D9CFEE" stroke-dasharray="4 4"/>`;
+  [40,55,70,85].forEach(u=>{s+=`<text x="${X(u)}" y="${H-16}" font-size="10" fill="#6B6B7B" text-anchor="middle" class="num">${u}%</text>`;});
+  [12,16,20,24].forEach(c=>{s+=`<text x="${pad.l-8}" y="${Y(c)+4}" font-size="10" fill="#6B6B7B" text-anchor="end" class="num">₹${c}</text>`;});
+  s+=`<text x="${pad.l+4}" y="${pad.t+2}" font-size="9.5" font-weight="800" fill="${C.red}">HIGH COST · LOW UTIL</text>`;
+  s+=`<text x="${W-pad.r-4}" y="${pad.t+ah-8}" font-size="9.5" font-weight="800" fill="${C.grn}" text-anchor="end">IDEAL</text>`;
+  SITES.forEach(st=>{const col=hcol(st.score),r=big?9:7;
+    s+=`<g data-tip="<b>${st.n}</b><br>₹${st.cost}/unit · util ${st.util}% · score ${st.score}"><circle cx="${X(st.util)}" cy="${Y(st.cost)}" r="${r}" fill="${col}" fill-opacity=".2" stroke="${col}" stroke-width="1.8"/><circle cx="${X(st.util)}" cy="${Y(st.cost)}" r="2.6" fill="${col}"/>`+
+      (big?`<text x="${X(st.util)}" y="${Y(st.cost)-13}" font-size="10" font-weight="700" fill="#3A3A4E" text-anchor="middle">${st.n.replace(' DC','')}</text>`:'')+`</g>`;});
+  s+=`<text x="${W/2}" y="${H-2}" font-size="10" fill="#6B6B7B" text-anchor="middle" font-weight="700">Utilisation →</text>`;
+  s+=`<text x="12" y="${pad.t+ah/2}" font-size="10" fill="#6B6B7B" font-weight="700" transform="rotate(-90 12 ${pad.t+ah/2})" text-anchor="middle">Cost per unit →</text>`;
+  $(sel).innerHTML=`<svg viewBox="0 0 ${W} ${H}">${s}</svg>`;bindTips($(sel));
+}
+
+/* ---------------- priority index ---------------- */
+const WDEF=[['v','Realizable value',40],['p','Payback speed',15],['e','Effort (less is better)',20],['u','Urgency / renewal clock',15],['c','Confidence in the data',10]];
+const W_={v:40,p:15,e:20,u:15,c:10};
+const normW=()=>{const s=Object.values(W_).reduce((a,b)=>a+b,0)||1;const o={};for(const k in W_)o[k]=W_[k]/s;return o;};
+const idx=(o,w)=>Math.round(o.v*w.v+o.p*w.p+o.e*w.e+o.u*w.u+o.c*w.c);
+function oppRow(o,rank){
+  return `<div class="opp" data-t="${o.t}"><div class="rank">${rank}</div><div class="body">
+    <div class="t1">${o.t}</div>
+    <div class="t2"><span class="save num">${o.save}</span><span class="tag t-acc">${o.bank}</span>${dots(o.dots)}<span class="tag t-${o.urgc==='amb'?'amb':o.urgc==='red'?'red':o.urgc==='grn'?'grn':'grey'}">${o.urg}</span>${o.sim?'<span class="tag t-grey">sim before sign-off</span>':''}</div></div>
+    <div class="idx"><div class="n num">${o.ix}</div><div class="bar"><i style="width:${o.ix}%"></i></div></div></div>`;
+}
+function buildSliders(){
+  const box=$('#sliders');box.innerHTML='';
+  WDEF.forEach(([k,lab])=>{const r=el(`<div class="wrow"><div class="l"><span>${lab}</span><b class="num" id="wv-${k}">${W_[k]}%</b></div><input type="range" min="0" max="100" value="${W_[k]}" id="w-${k}"></div>`);box.appendChild(r);
+    $('#w-'+k).addEventListener('input',e=>{W_[k]=+e.target.value;renderWeights();renderOpps();buildOvOpps();});});
+  renderWeights();
+}
+function renderWeights(){const w=normW();WDEF.forEach(([k])=>{$('#wv-'+k).textContent=Math.round(w[k]*100)+'%';});$('#wsum').textContent='weights normalise to 100%';}
+function renderOpps(){
+  const w=normW(), ranked=OPPS.map(o=>({...o,ix:idx(o,w)})).sort((a,b)=>b.ix-a.ix);
+  const box=$('#opplist');
+  const old={};$$('.opp',box).forEach(n=>old[n.dataset.t]=n.getBoundingClientRect().top);
+  box.innerHTML=ranked.map((o,i)=>oppRow(o,i+1)).join('');
+  $$('.opp',box).forEach(n=>{const p=old[n.dataset.t];if(p!=null){const d=p-n.getBoundingClientRect().top;if(d){n.style.transition='none';n.style.transform=`translateY(${d}px)`;requestAnimationFrame(()=>{n.style.transition='transform .4s ease';n.style.transform='';});}}});
+}
+
+/* ---------------- scorecards ---------------- */
+const POFF=[['Cost',-16],['Productivity',-22],['Space & assets',10],['Dock & load',-4],['Quality',16],['Inventory',-8],['Service',-18],['People & safety',6],['Commercial',-12]];
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function pillarMetrics(name,s){
+  const d=(s.score-70);
+  switch(name){
+   case 'Cost':return [['Cost / unit',`₹${s.cost}`,s.cost>16?'red':s.cost>13.5?'amb':'grn'],['vs peer best',(s.cost>13?'+':'')+Math.round((s.cost/12.4-1)*100)+'%',s.cost>16?'red':'amb']];
+   case 'Productivity':return [['Picking UPH vs cluster',(d>=0?'+':'')+Math.round(d/2)+'%',d<-10?'red':d<0?'amb':'grn'],['vs fitted standard',clamp(80+Math.round(d/2),62,101)+'%',d<0?'amb':'grn']];
+   case 'Space & assets':return [['Storage use (avg / peak)',`${s.util} / ${s.peak}%`,s.peak>90?'amb':'grn'],['Cubic (stacking) use',clamp(s.util+4,50,88)+'%','amb']];
+   case 'Dock & load':return [['Truck turnaround',(d<0?'+':'−')+Math.abs(Math.round(d/3))+'% vs peers',d<-8?'amb':'grn'],['Load fill',clamp(84+Math.round(d/4),70,97)+'%','grn']];
+   case 'Quality':return [['Pick accuracy',(99+clamp(d,-40,20)/100).toFixed(1)+'%','grn'],['Damage rate',(0.6-clamp(d,-30,25)/100).toFixed(1)+'%',d<-15?'amb':'grn']];
+   case 'Inventory':return [['Near-expiry at risk',clamp(7-Math.round(d/6),1,9)+'%',d<-8?'amb':'grn'],['Turns',(6.4+d/25).toFixed(1)+'×','grn']];
+   case 'Service':return [['OTIF',s.score<45?'coverage gap':clamp(91+Math.round(d/4),84,98)+'%',s.score<45?'grey':'grn'],['Returns rate',(2.6-d/40).toFixed(1)+'%',d<-10?'amb':'grn']];
+   case 'People & safety':return [['Attrition',clamp(19-Math.round(d/4),8,26)+'%',d<-5?'amb':'grn'],['Incidents / near-miss','low','grn']];
+   case 'Commercial':return [['Rate vs market',CONTRACTS.find(c=>c[0]===s.n)?CONTRACTS.find(c=>c[0]===s.n)[3]:'at market',d<-10?'red':'amb'],['Contract expiry',CONTRACTS.find(c=>c[0]===s.n)?CONTRACTS.find(c=>c[0]===s.n)[5]:'&gt; 12 months','amb']];
+  }
+}
+let CUR=7;
+function buildSiteChips(){$('#sitechips').innerHTML=SITES.map((s,i)=>(!SHOWALL&&!s.top8&&i!==CUR)?'':`<button data-i="${i}" class="${i===CUR?'on':''}">${s.n.replace(' DC','')}</button>`).join('');$$('#sitechips button').forEach(b=>b.onclick=()=>selectSite(+b.dataset.i));}
+function selectSite(i){CUR=i;buildSiteChips();renderScore();}
+function renderScore(){
+  const s=SITES[CUR],col=hcol(s.score),circ=2*Math.PI*38;
+  const tags=[s.reg+' region', s.score>70?'Own — dedicated':'3PL — shared', s.score>80?'Semi-automated':'Manual + MHE','Ambient'];
+  const pill=POFF.map(([nm,off])=>{const p=clamp(s.score+off,8,96),pc=hcol(p);
+    const m=pillarMetrics(nm,s).map(([l,v,c])=>`<div class="met"><span><span class="dotb" style="background:var(--${c==='grey'?'mut':c==='grn'?'grn':c==='amb'?'amb':'red'})"></span>${l}</span><b class="num">${v}</b></div>`).join('');
+    return `<div class="pillar"><div class="ph"><b>${nm}</b><span class="pct num" style="color:${pc}">P${p}</span></div><div class="pbar"><i style="width:${p}%;background:${pc}"></i></div>${m}</div>`;}).join('');
+  $('#scorebody').innerHTML=`
+   <div style="display:flex;gap:18px;align-items:center;margin-bottom:14px">
+     <div class="ring"><svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46" cy="46" r="38" stroke="#C9C0DE" stroke-width="8" fill="none"/><circle cx="46" cy="46" r="38" stroke="${col}" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${circ*s.score/100} ${circ}"/></svg><div class="rv"><span>${s.score}<small>health</small></span></div></div>
+     <div style="flex:1"><div style="color:var(--ink);font-size:17px;font-weight:800">${s.n}</div>
+       <div style="margin:7px 0 0;display:flex;gap:7px;flex-wrap:wrap">${tags.map(t=>`<span class="tag t-grey">${t}</span>`).join('')}</div></div>
+     <div style="text-align:right;font-size:11.6px;color:var(--mut)">Throughput <b class="num" style="color:var(--ink)">${inr(s.thr*1000)}</b> u/mo<br>Cost <b class="num" style="color:var(--ink)">₹${s.cost}</b>/unit · Util <b class="num" style="color:var(--ink)">${s.util}%</b></div></div>
+   <div class="pillars">${pill}</div>
+   <div class="hint" style="margin-top:12px">P = percentile within this site's like-for-like peer cluster. In the full product every metric clicks through to its formula and source cell.</div>`;
+}
+
+/* ---------------- contracts ---------------- */
+function buildContracts(){
+  const rows=CONTRACTS.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="num">${r[2]}</td>
+   <td class="num" style="color:var(--${r[4]==='txt'?'text':r[4]});font-weight:700">${r[3]}</td>
+   <td class="num" style="color:var(--${r[6]==='txt'?'text':r[6]});font-weight:${r[6]==='txt'?'400':'700'}">${r[5]}</td>
+   <td><span class="tag t-${r[8]}">${r[7]}</span></td></tr>`).join('');
+  $('#contractbody').innerHTML=`<table class="t"><tr><th>Counterparty</th><th>Type</th><th>Value/yr</th><th>vs market</th><th>Expiry</th><th>Risk</th></tr>${rows}</table>
+   <div class="hint" style="margin-top:10px">"vs market" and leakage come from crossing contract terms against actual invoices, KPIs and market indices — a contract read alone is a filing cabinet; crossed with data it becomes a leak detector.</div>`;
+  const B=[[.30,.30,26,'Chennai 3PL',C.amb],[.72,.34,22,'Kolkata 3PL',C.acc],[.80,.66,19,'Carrier',C.teal],[.62,.74,15,'Manpower',C.teal],[.26,.66,12,'Consumables',C.mut],[.42,.22,17,'MHE OEM',C.amb],[.56,.52,13,'Packaging',C.acc]];
+  const sz=260,ox2=44,oy2=30;let s='';
+  s+=`<rect x="${ox2}" y="${oy2}" width="${sz/2}" height="${sz/2}" fill="${C.amb}" fill-opacity=".06"/><rect x="${ox2+sz/2}" y="${oy2}" width="${sz/2}" height="${sz/2}" fill="${C.acc}" fill-opacity=".08"/><rect x="${ox2}" y="${oy2+sz/2}" width="${sz/2}" height="${sz/2}" fill="#F3EFFA" fill-opacity=".5"/><rect x="${ox2+sz/2}" y="${oy2+sz/2}" width="${sz/2}" height="${sz/2}" fill="${C.teal}" fill-opacity=".07"/>`;
+  s+=`<rect x="${ox2}" y="${oy2}" width="${sz}" height="${sz}" fill="none" stroke="#D9CFEE" rx="6"/><line x1="${ox2+sz/2}" y1="${oy2}" x2="${ox2+sz/2}" y2="${oy2+sz}" stroke="#D9CFEE"/><line x1="${ox2}" y1="${oy2+sz/2}" x2="${ox2+sz}" y2="${oy2+sz/2}" stroke="#D9CFEE"/>`;
+  const q=[['SECURE CONTINUITY',ox2+8,oy2+16,C.amb],['PARTNER / DE-RISK',ox2+sz/2+8,oy2+16,C.acc2],['SIMPLIFY',ox2+8,oy2+sz-8,'#78708F'],['COMPETITIVE TENSION',ox2+sz/2+8,oy2+sz-8,C.teal]];
+  q.forEach(([t,x,y,c])=>s+=`<text x="${x}" y="${y}" font-size="8.6" font-weight="800" fill="${c}">${t}</text>`);
+  B.forEach(([fx,fy,r,lab,c])=>{const cx=ox2+fx*sz,cy=oy2+(1-fy)*sz;s+=`<g data-tip="<b>${lab}</b><br>bubble = annual spend"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${c}" fill-opacity=".2" stroke="${c}" stroke-width="1.6"/><text x="${cx}" y="${cy+r+11}" font-size="9.3" font-weight="700" fill="#3A3A4E" text-anchor="middle">${lab}</text></g>`;});
+  s+=`<text x="${ox2+sz/2}" y="${oy2+sz+30}" font-size="10" font-weight="700" fill="#6B6B7B" text-anchor="middle">Our buying power →</text>`;
+  s+=`<text x="16" y="${oy2+sz/2}" font-size="10" font-weight="700" fill="#6B6B7B" transform="rotate(-90 16 ${oy2+sz/2})" text-anchor="middle">Supplier power →</text>`;
+  $('#strat').innerHTML=`<svg viewBox="0 0 350 336">${s}</svg><div class="hint" style="margin-top:6px">Placement is contestable at the review gate with a logged reason. Bubble = annual spend.</div>`;
+  bindTips($('#strat'));
+}
+
+/* ---------------- locked + brief ---------------- */
+const LOCKED=[
+ ['Re-slotting across all sites','Location layout + pick log','typically ₹1.5–3 Cr per large site','WMS location export'],
+ ['3PL rate challenge (should-cost)','Your last tender / RFQ quotes','turns rate gaps into a hard, sized case','procurement records'],
+ ['Shift re-rostering to demand','Hour-by-hour arrival volumes','removes idle pockets and overtime','WMS timestamp export']];
+function buildLocked(){$('#lockedbody').innerHTML=LOCKED.map(l=>`<div class="lockcard"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+  <div style="flex:1"><div style="color:var(--ink);font-weight:800;font-size:13.5px">${l[0]}</div>
+  <div style="font-size:11.8px;margin-top:4px"><span style="color:var(--mut);font-weight:700">Needs:</span> ${l[1]} &nbsp;·&nbsp; <span style="color:var(--mut);font-weight:700">Where:</span> ${l[3]}</div>
+  <div style="font-size:11.8px;color:var(--teal);font-weight:700;margin-top:3px">Potential: ${l[2]}</div></div>
+  <button class="btn" onclick="toast('Demo build — in the product this opens the guided upload.')">Upload to unlock</button></div>`).join('');}
+function briefItem(b){return `<div class="brief-it" style="--bc:var(--${b.c==='acc'?'acc':b.c})"><div style="flex:1"><div class="tt">${b.t}</div><div class="dd">${b.d}</div><span class="chip ${b.cc}">${b.chip}</span></div></div>`;}
+function buildBrief(){$('#briefbody').innerHTML='<div class="eyebrow" style="margin-bottom:8px">Since last refresh</div>'+BRIEF.map(briefItem).join('');$('#railbrief').innerHTML=BRIEF.slice(0,4).map(briefItem).join('');}
+
+/* ---------------- assistant ---------------- */
+function msg(html,who){const l=$('#chatlog');l.appendChild(el(`<div class="msg ${who}">${html}</div>`));l.scrollTop=l.scrollHeight;}
+function traceLine(){return `<div class="hint" style="margin-top:7px">Compiled to an engine call · every figure traces to source · demo responses are scripted</div>`;}
+function answer(q){
+  const s=q.toLowerCase();
+  if(/worst|underperform|flag/.test(s)) return `Ranked by health score, the two sites needing attention are:<table class="t" style="margin-top:6px">
+    <tr><td><b>Chennai DC</b></td><td>score <b class="num" style="color:var(--red)">28</b></td><td>util 48% · ₹23.6/unit (+47% vs peer best) · 3PL contract 54 days out</td></tr>
+    <tr><td><b>Kolkata DC</b></td><td>score <b class="num" style="color:var(--red)">42</b></td><td>expired contract billing month-to-month · productivity −15% · overtime rising</td></tr></table>
+    Both are already in this month's Estate Brief with linked opportunities.${traceLine()}`;
+  if(/close|consolidat|shut|merge/.test(s)) return `Here's the consolidation case for <b style="color:var(--ink)">Kolkata DC → Hyderabad DC</b> at constant volume:<table class="t" style="margin-top:6px">
+    <tr><td><span class="dotb" style="background:var(--grn)"></span>Escapable fixed cost released at Kolkata</td><td class="num" style="color:var(--grn);font-weight:800">+ ₹14.6 Cr/yr</td></tr>
+    <tr><td><span class="dotb" style="background:var(--red)"></span>Extra variable cost absorbed at Hyderabad</td><td class="num" style="color:var(--red);font-weight:800">− ₹3.8 Cr/yr</td></tr>
+    <tr><td><span class="dotb" style="background:var(--red)"></span>Extra outbound freight (serving farther)</td><td class="num" style="color:var(--red);font-weight:800">− ₹2.9 Cr/yr</td></tr>
+    <tr><td><span class="dotb" style="background:var(--mut)"></span>One-off: exit penalty + dual-running + move</td><td class="num" style="font-weight:800">− ₹6.5 Cr once</td></tr>
+    <tr><td><b>Net annual value</b></td><td class="num" style="color:var(--teal);font-weight:800">≈ ₹7.9 Cr/yr · payback ~10 months</td></tr></table>
+    <div class="callout" style="margin-top:8px"><b>Caveat:</b> Hyderabad would reach <b>91% at peak</b> — thin surge headroom. This case is queued for full simulation before sign-off.</div>${traceLine()}`;
+  if(/contract|expir|renew/.test(s)) return `Contracts inside the action window:<table class="t" style="margin-top:6px">
+    <tr><td><b>Chennai 3PL</b></td><td class="num" style="color:var(--amb);font-weight:700">54 days</td><td>+9% vs market · notice window open — should-cost pack is ready</td></tr>
+    <tr><td><b>Kolkata 3PL</b></td><td class="num" style="color:var(--red);font-weight:700">expired</td><td>billing month-to-month — regularise or exit</td></tr>
+    <tr><td><b>Ahmedabad manpower</b></td><td class="num" style="color:var(--amb);font-weight:700">88 days</td><td>+6% vs market · auto-renew trap flagged</td></tr></table>${traceLine()}`;
+  if(/top|saving|opportun|priorit/.test(s)){const w=normW();const r=OPPS.map(o=>({...o,ix:idx(o,w)})).sort((a,b)=>b.ix-a.ix).slice(0,3);
+    return `Top 3 by your current Priority Index weights:<table class="t" style="margin-top:6px">${r.map((o,i)=>`<tr><td><b>${i+1}. ${o.t}</b></td><td class="num" style="color:var(--teal);font-weight:800">${o.save}</td><td class="num"><b>${o.ix}</b></td></tr>`).join('')}</table>Move the weights on the Opportunities tab and this ranking re-computes.${traceLine()}`;}
+  if(/slot/.test(s)) return `<b style="color:var(--ink)">Re-slot fast movers — Pune DC:</b> top-40 SKUs sit a long walk from dispatch; travel is ~31% of pick time vs 22% at peer sites. Sized at <b style="color:var(--teal)">₹1.8 Cr/yr</b> (Type A), effort 2/5, no capex — a quick win. Full location-level plan unlocks with the WMS location export (see Locked opportunities).${traceLine()}`;
+  return `In the full product I compile any question into a structured call on the KPI, cost, contract or what-if engines. This demo answers a few scripted ones — try <i>"worst performing warehouses"</i>, <i>"what if we close Kolkata"</i>, <i>"contracts expiring"</i>, or <i>"top savings"</i>.${traceLine()}`;
+}
+function ask(q){go('assistant');msg(q,'q');setTimeout(()=>msg(answer(q),'a'),420);}
+function initChat(){
+  msg('What if we close Kolkata DC and serve the east from Hyderabad?','q');
+  msg(answer('what if we close kolkata'),'a');
+  $('#chatsend').onclick=()=>{const v=$('#chatin').value.trim();if(v){$('#chatin').value='';ask(v);}};
+  $('#chatin').addEventListener('keydown',e=>{if(e.key==='Enter')$('#chatsend').click();});
+  $('#askbox').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.value.trim()){ask(e.target.value.trim());e.target.value='';}});
+  $$('[data-ask]').forEach(b=>b.onclick=()=>ask(b.dataset.ask));
+}
+
+/* ---------------- upload & coverage ---------------- */
+const PACK=[
+ ['Site master · aliases, capacity, shifts','Estate','CORE',2],
+ ['Cost-centre P&L / trial balance (12–24 mo)','Financial','CORE',2],
+ ['GL code master · cost-centre → site map','Financial','CORE',2],
+ ['Headcount roster by site & month','Workforce','CORE',2],
+ ['Throughput summary (inbound/outbound)','Operations','CORE',2],
+ ['Leases & rent schedules + amendments','Contracts','CORE',1],
+ ['3PL agreements & rate cards','Contracts','CORE',2],
+ ['Line-item 3PL invoices (12–24 mo)','Invoices','CORE',1],
+ ['Transport contracts & rate matrices','Contracts','CORE',1],
+ ['MHE fleet register','Assets','CORE',2],
+ ['Month-end stock summary','Inventory','CORE',1],
+ ['Electricity bills (12–24 mo)','Energy','CORE',0],
+ ['WMS transaction log · timestamps, location','Operations','DEPTH',0],
+ ['SKU master · case pack, shelf life','Inventory','DEPTH',1],
+ ['Attendance & overtime','Workforce','DEPTH',1],
+ ['Batch / expiry ageing report','Inventory','DEPTH',0],
+ ['Gate & yard register','Operations','DEPTH',0],
+ ['Damage & write-off register','Quality','DEPTH',1],
+ ['OTIF / SLA performance vs contract','Service','DEPTH',0],
+ ['Vendor master & annual spend','Invoices','DEPTH',1],
+ ['Hour-by-hour arrival profile','Operations','UNLOCK',0],
+ ['WMS location master / rack layout','Estate','UNLOCK',0],
+ ['Past tender / RFQ quotes','External','UNLOCK',0],
+];
+function covRender(){
+  const map={2:['pl-g','Received'],1:['pl-a','Partial'],0:['pl-r','Missing']};
+  let rows='<tr><th>File</th><th>Cluster</th><th>Tier</th><th>Status</th></tr>';
+  PACK.forEach(([f,cl,t,st])=>{const[m,lab]=map[st];
+    rows+=`<tr><td><b style="color:var(--ink)">${f}</b></td><td style="color:var(--mut)">${cl}</td>
+    <td><span class="tierchip">${t}</span></td><td><span class="pill ${m}">${lab}</span></td></tr>`;});
+  $('#covtbl').innerHTML=rows;
+  const core=PACK.filter(p=>p[2]==='CORE'); const got=core.reduce((a,p)=>a+p[3],0)/(core.length*2);
+  $('#covpct').textContent=Math.round(got*100)+'% of CORE received';
+}
+function initUpload(){
+  const dz=$('#drop'), fi=$('#filein'); if(!dz) return;
+  covRender();
+  dz.onclick=()=>fi.click();
+  ['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('hot');}));
+  ['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('hot');}));
+  dz.addEventListener('drop',ev=>ingest([...(ev.dataTransfer.files||[])]));
+  fi.onchange=()=>ingest([...fi.files]);
+}
+function ingest(files){
+  if(!files.length) return;
+  const log=$('#uplog'); const names=files.slice(0,6).map(f=>f.name);
+  log.innerHTML=`<div class="note" style="margin-top:0"><b>${files.length} file${files.length>1?'s':''} received.</b>
+    ${names.map(n=>`<div style="font-size:11.5px;color:var(--text);margin-top:3px">• ${n} — <span style="color:var(--acc2)">classifying → extracting → validating</span></div>`).join('')}
+    ${files.length>6?`<div style="font-size:11.5px;color:var(--mut);margin-top:3px">…and ${files.length-6} more</div>`:''}</div>`;
+  let n=0; const t=setInterval(()=>{
+    const i=PACK.findIndex(p=>p[3]<2); if(i<0||n>=files.length){clearInterval(t);return;}
+    PACK[i][3]=Math.min(2,PACK[i][3]+1); n++; covRender();
+  },260);
+  toast(`${files.length} file(s) queued — A1 · Atlas is classifying and grading them`);
+}
+
+/* ---------------- scope selector ---------------- */
+function buildScope(){
+  const sel=$('#scopesel'); if(!sel) return;
+  const list=SITES.map((s,i)=>[s,i]).filter(([s,i])=>SHOWALL||s.top8);
+  sel.innerHTML=`<option value="-1">Estate-wide · all 24 sites</option>`+
+    list.map(([s,i])=>`<option value="${i}">${s.n}</option>`).join('');
+  sel.onchange=()=>setScope(+sel.value);
+}
+
+function initSeg(){
+  const seg=$('#siteseg'); if(!seg) return;
+  seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    SHOWALL=+b.dataset.all;
+    seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+    if(!SHOWALL && SCOPE>=0 && !SITES[SCOPE].top8) setScope(-1);
+    buildScope(); const sl=$('#scopesel'); if(sl) sl.value=String(SCOPE);
+    buildMap(); buildSiteChips();
+    toast(SHOWALL?'Showing all 24 sites':'Showing top 8 sites by spend');
+  });
+}
+/* ---------------- gap register ---------------- */
+let GAPFILT='all';
+function gapRows(){
+  const R=[];
+  SITES.forEach((st,i)=>{
+    const f=SITEFIN[i], best=+(st.cost*f.best).toFixed(1), pct=Math.round((st.cost/best-1)*100);
+    if(pct>=6) R.push({s:st.n,c:'Cost',g:`Cost/unit ₹${st.cost} vs peer-best ₹${best}`,d:`+${pct}%`,
+      v:`₹${(f.ann*(1-f.best)).toFixed(1)} Cr/yr`, k: pct>=12?'Finding':'Lead',
+      n: pct>=12?'Sized by A5 · Prospector':'Investigate activity mix'});
+    if(st.util<62) R.push({s:st.n,c:'Space',g:`Utilisation ${st.util}% vs cluster median 71%`,d:`−${71-st.util}pp`,
+      v: st.util<56?`₹${(f.ann*0.06).toFixed(1)} Cr/yr`:'—', k: st.util<56?'Finding':'Lead',
+      n: st.util<56?'Consolidation / sub-let candidate':'Check seasonality before sizing'});
+    if(st.peak>=90) R.push({s:st.n,c:'Capacity',g:`Peak ${st.peak}% — thin surge headroom`,d:'risk',v:'—',k:'Context',
+      n:'Constraint on any consolidation into this site'});
+    if(st.score<50) R.push({s:st.n,c:'Productivity',g:'Picking UPH below fitted standard',d:'−15%',
+      v:`₹${(f.ann*f.mix[0]/100*0.09).toFixed(1)} Cr/yr`,k:'Lead',n:'Unlocks with WMS transaction log'});
+  });
+  R.push({s:'Kolkata DC',c:'Contract',g:'3PL agreement expired — still billing month-to-month',d:'expired',
+    v:'₹2.1 Cr/yr exposure',k:'Finding',n:'Regularise or re-tender · A4 · Hound'});
+  R.push({s:'Chennai DC',c:'Contract',g:'Invoiced rate above rate card on 4 line items',d:'+9%',
+    v:'₹1.4 Cr/yr',k:'Finding',n:'Recover + correct forward billing'});
+  R.push({s:'Estate-wide',c:'Contract',g:'Service credits earned but never claimed (18 months)',d:'—',
+    v:'₹3.4 Cr one-off',k:'Finding',n:'Claim pack ready · highest bankability'});
+  R.push({s:'Ahmedabad DC',c:'Contract',g:'Manpower rate escalation applied on wrong base',d:'+6%',
+    v:'₹0.5 Cr/yr',k:'Finding',n:'Correct base · recover overpayment'});
+  R.push({s:'Estate-wide',c:'Data',g:'WMS transaction log missing for 14 sites',d:'—',v:'blocks sizing',k:'Context',
+    n:'Fix-the-data task — unlocks slotting & rostering'});
+  R.push({s:'Estate-wide',c:'Data',g:'Electricity bills missing — energy head unverified',d:'—',v:'blocks sizing',k:'Context',
+    n:'Fix-the-data task — demand-charge review'});
+  R.push({s:'Estate-wide',c:'Benchmark',g:'External 3PL rate benchmarks thin for tier-2 cities',d:'—',v:'—',k:'Context',
+    n:'Use should-cost + own tender history instead'});
+  return R;
+}
+function renderGaps(){
+  const rows=gapRows().filter(r=>GAPFILT==='all'||r.k===GAPFILT);
+  const cls={Finding:'pl-g',Lead:'pl-a',Context:'pl-r'};
+  let h='<tr><th>Site</th><th>Type</th><th>Gap found</th><th>Δ</th><th>Indicative value</th><th>Grade</th><th>What happens next</th></tr>';
+  rows.forEach(r=>{h+=`<tr><td><b style="color:var(--ink)">${r.s}</b></td><td style="color:var(--mut)">${r.c}</td>
+    <td>${r.g}</td><td class="num" style="color:${r.d.startsWith('+')||r.d==='expired'?'var(--red)':'var(--mut)'}">${r.d}</td>
+    <td class="num"><b>${r.v}</b></td><td><span class="pill ${cls[r.k]}">${r.k}</span></td>
+    <td style="color:var(--mut)">${r.n}</td></tr>`;});
+  $('#gaptbl').innerHTML=h;
+  const all=gapRows();
+  $('#gaphd').textContent=`${rows.length} gap${rows.length!==1?'s':''} shown · ${all.filter(r=>r.k==='Finding').length} Findings · ${all.filter(r=>r.k==='Lead').length} Leads · ${all.filter(r=>r.k==='Context').length} Context`;
+}
+function initGaps(){
+  const seg=$('#gapseg'); if(!seg) return; renderGaps();
+  seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    GAPFILT=b.dataset.g; seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); renderGaps();});
+}
+
+/* ---------------- boot ---------------- */
+window.go=go; window.selectSite=selectSite; window.toast=toast; window.setScope=setScope;
+buildNav();buildScope();buildKpis();buildMap();initUpload();initSeg();initGaps();buildOvContracts();buildOvTable();
+waterfall('#ov-water',420,250,true);waterfall('#big-water',920,360,false);donutAndDrivers();
+scatter('#ov-scatter',420,250,false);scatter('#big-scatter',920,420,true);
+buildSliders();renderOpps();buildOvOpps();buildSiteChips();renderScore();buildContracts();buildLocked();buildBrief();initChat();
+
+</script>
+</body>
+</html>
